@@ -9,3 +9,4 @@
 8. Addressing Shared Resource Contention in Multicore Processors via Scheduling [ASPLOS 10]
 9. The Impact of Memory Subsystem Resource Sharing on Datacenter Applications [ISCA 11]
 10. Clearing the clouds: a study of emerging scale-out workloads on modern hardware [ASPLOS 12]
+11. An Approach to Performance Prediction for Parallel Applications [EuroPar 05]
