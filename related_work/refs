@@ -7,3 +7,5 @@
 6. Correlating instrumentation data to system states: A building block for automated diagnosis and control [OSDI 04]
 7. Predicting Inter-Thread Cache Contention on a Chip Multi-Processor Architecture [HPCA 05]
 8. Addressing Shared Resource Contention in Multicore Processors via Scheduling [ASPLOS 10]
+9. The Impact of Memory Subsystem Resource Sharing on Datacenter Applications [ISCA 11]
+10. Clearing the clouds: a study of emerging scale-out workloads on modern hardware [ASPLOS 12]
