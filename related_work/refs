@@ -1,4 +1,3 @@
-
 1. PREPARE: Predictive Performance Anomaly Prevention for Virtualized Cloud Systems [icdcs'12]
 2. Automating Vertical Profiling [OOPSLA 05]
 3. Mapping Parallelism to Multi-cores: A Machine Learning based Approach  [PPoPP 09]
@@ -10,3 +9,4 @@
 9. The Impact of Memory Subsystem Resource Sharing on Datacenter Applications [ISCA 11]
 10. Clearing the clouds: a study of emerging scale-out workloads on modern hardware [ASPLOS 12]
 11. An Approach to Performance Prediction for Parallel Applications [EuroPar 05]
+12. Using Cycle Stacks to Understand Scaling Bottlenecks in Multi-Threaded Workloads [IISWC 2011]
