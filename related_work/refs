@@ -10,3 +10,4 @@
 10. Clearing the clouds: a study of emerging scale-out workloads on modern hardware [ASPLOS 12]
 11. An Approach to Performance Prediction for Parallel Applications [EuroPar 05]
 12. Using Cycle Stacks to Understand Scaling Bottlenecks in Multi-Threaded Workloads [IISWC 2011]
+13. Detection of false sharing using machine learning [SC 13]
