@@ -13,3 +13,4 @@
 13. Detection of false sharing using machine learning [SC 13]
 14. Maximizing Hardware Prefetch Effectiveness with Machine Learning[hpcc 15]
 15. Dynamic cache contention detection in multi-threaded applications[VEE 11]
+16. The performance of spin lock alternatives for shared-money multiprocessors[IEEE tran of Par n Dis sys]
