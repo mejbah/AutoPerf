@@ -1,0 +1,16 @@
+11-21-2016
+===========
+1. fuction level perf counters
+2. bug inject with separate threads
+
+11-25-2016
+==========
+from paper refs : 24 [ADP: Automated Diagnosis of Performance Pathologies Using Hardware Events]
+1. Correlation based feature selection
+
+2. Random forest+voting
+	- doesnt overfit as it can have  mulitple decision trees
+
+3. divide with no of cycles(not number of inst) to normalize
+
+4. Ineffient/strided pointer/array access in parsec - canneal, streamcluster and fluidanimate( see the paper)
