@@ -44,9 +44,11 @@ typedef struct thread {
   unsigned long actualRuntime;
   unsigned long parentRuntime;
   unsigned long levelIndex; // In which phase
-  
+#ifdef PERF_EVENT  
   RecordEntries<perf_record_t> perfRecords; //TODO: create structure of perfEvents
   int eventSet; //PAPI eventset
+  int current_mark; // uniquely identify code location
+#endif
 
   // We used this to record the stack range
   void * stackBottom;

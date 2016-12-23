@@ -115,10 +115,11 @@ public:
   
   }
 
-  int start_perf_counters( thread_t *thd )
+  int start_perf_counters( thread_t *thd, int mark )
   {
     //int eventSet = set_perf_events();
 	int tid = thd->index;
+	thd->current_mark = mark;
     int retval = PAPI_start(eventSet[tid]);
     if ( retval != PAPI_OK ) {
        fprintf( stderr, "Error : PAPI_start retval %s\n", PAPI_strerror(retval) );
@@ -155,6 +156,7 @@ public:
     //}
     //record the values in sample
     int next_index = thd->perfRecords.get_next_index();
+	(thd->perfRecords.getEntry(next_index))->mark = thd->current_mark;
     for(int i=0; i<num_events; i++){
 	  (thd->perfRecords.getEntry(next_index))->count[i] = values[i];
     }

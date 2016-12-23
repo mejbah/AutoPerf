@@ -3,10 +3,11 @@
 #include "threadmods.h"
 #include "perfevent.h"
 
-void perfpoint_START(){
+//unique mark 
+void perfpoint_START(int mark){
   int tindex = getThreadIndex();
   thread_t* thread = xthread::getInstance().getThreadInfoByIndex(tindex);
-  xPerf::getInstance().start_perf_counters(thread);
+  xPerf::getInstance().start_perf_counters(thread, mark);
 }
 
 void perfpoint_END(){

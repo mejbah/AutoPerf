@@ -88,8 +88,8 @@ public:
 
 	  int total_records = records.getEntriesNumb();
 
-
 		for(int i=0; i<total_records; i++) {
+		  fs << records.getEntry(i)->mark << ",";
 		  for(int j=0; j<NUM_EVENTS-1; j++){
 			fs << records.getEntry(i)->count[j]  << "," ;
 		  }

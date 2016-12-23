@@ -3,9 +3,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-void perfpoint_START(void);
+void perfpoint_START(int mark);
 
-void perfpoint_END(void);
+void perfpoint_END();
 #ifdef __cplusplus
 }
 #endif

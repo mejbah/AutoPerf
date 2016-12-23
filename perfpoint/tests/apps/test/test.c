@@ -93,11 +93,11 @@ Thread( void *arg )
 //	if ( retval != PAPI_OK ) {
 //		test_fail( __FILE__, __LINE__, "PAPI_start", retval );
 //	}
-	perfpoint_START();
+	perfpoint_START(1);
 	do_flops( *( int * ) arg );
 	perfpoint_END();
 
-	perfpoint_START();
+	perfpoint_START(2);
 	do_flops( *( int * ) arg );
 	perfpoint_END();
 

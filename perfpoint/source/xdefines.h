@@ -24,6 +24,7 @@
 
 typedef struct {
 
+  int mark; //uniqe identified of code location?
   long long count[NUM_EVENTS];
 
 }perf_record_t;

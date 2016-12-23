@@ -1,9 +1,9 @@
 # FIXME: these two lines that need to be changed correspondingly. Another file is 
 # tests/config.mk if you want to change the number of threads or input set (native | large)
 #MYLIB_WITH_DIR = /home/mejbah/lockperf/src/liblockperf.so
-MYLIB_WITH_DIR = /home/mejbah/perfpoint/source/perfpoint.so
-MYLIB_DIR = /home/mejbah/perfpoint/source
-MYLIB = lockperf
+MYLIB_WITH_DIR = /home/mejbah/git_clones/Perf-Anomaly/perfpoint/source/perfpoint.so
+MYLIB_DIR = /home/mejbah/git_clones/Perf-Anomaly/perfpoint/source
+MYLIB = perfpoint
 CC = gcc 
 CXX = g++ 
 CFLAGS += -g -O #-fno-omit-frame-pointer
@@ -55,7 +55,7 @@ eval-pthread: $(TEST_NAME)-pthread
 ############ $(MYLIB) builders ############
 
 MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG #-I/home/mejbah/perfpoint/source
-RPATH = -Wl,-rpath /home/mejbah/perfpoint/source -Wl,-rpath /usr/local/lib
+RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /usr/local/lib
 
 #PAPI_LIB += /home/mejbah/papi/papi-5.5.1/src/libpapi.a
 LD_FLAGS += -L$(MYLIB_DIR) -L/usr/local/lib
