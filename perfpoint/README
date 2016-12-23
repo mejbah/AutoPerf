@@ -1,0 +1,8 @@
+- performance counter monitor
+- API:
+	  #include "perfpoint.h"
+	  perfpoint_START()
+	  perfpoint_END()
+
+	  TODO: use mark_id as parameter to uniquely identify code region
+
