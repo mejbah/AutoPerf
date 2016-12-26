@@ -84,22 +84,30 @@ public:
     return stack_str;
   }
 #endif
+	void write_results_header(){
+	  fs << "Mark_id";
+	  for(int i=0; i<NUM_EVENTS; i++){
+		fs << ", "<< g_event_list[i] ;
+	  }
+	  fs << "\n";
+
+	}
 	void write_results( RecordEntries<perf_record_t>&records){
 
 	  int total_records = records.getEntriesNumb();
-
+	   
 		for(int i=0; i<total_records; i++) {
-		  fs << records.getEntry(i)->mark << ",";
-		  for(int j=0; j<NUM_EVENTS-1; j++){
-			fs << records.getEntry(i)->count[j]  << "," ;
+		  fs << records.getEntry(i)->mark;
+		  for(int j=0; j<NUM_EVENTS; j++){
+			fs << ", " << records.getEntry(i)->count[j] ;
 		  }
-		  fs << records.getEntry(i)->count[NUM_EVENTS-1] << "\n";
+		  fs << "\n";
 		}
 
 
 	}
 
-
+  
 };
 
 #endif

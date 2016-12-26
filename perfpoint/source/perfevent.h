@@ -14,6 +14,8 @@ class xPerf {
 private:
   int *perf_event;
   int num_events;
+  int num_of_hw_counters;
+  bool event_multiplex;
   int eventSet[xdefines::MAX_THREADS]; //eventSet for each thread
 
   xPerf(){}
@@ -25,23 +27,46 @@ public:
 	return *singleton;
   }
   
-  void init(int *events, int numberOfEvents){
+  void init(int numberOfEvents){
 	//memset(&perf_event, 0, sizeof(int));
 	//memset(&eventSet, PAPI_NULL, sizeof(int));
 	num_events = numberOfEvents;
-	perf_event = new int[numberOfEvents];
-	for(int i=0; i < numberOfEvents; i++){
-	  perf_event[i]= events[i];
-	}
+	event_multiplex = false;
+	//perf_event = new int[numberOfEvents];
+	//for(int i=0; i < numberOfEvents; i++){
+	//  perf_event[i]= events[i];
+	//}
 
 	/* Init PAPI library */
 	int retval = PAPI_library_init( PAPI_VER_CURRENT );
 	if ( retval != PAPI_VER_CURRENT ) {
-     fprintf(stderr,  "PAPI_library_init : retval %s, file %s, line %d\n",
+     fprintf(stderr,  "papi_library_init : retval %s, file %s, line %d\n",
 			   PAPI_strerror(retval), __FILE__, __LINE__);
 	}
 
 	printf("Initialized PAPI library\n");
+
+	
+    const PAPI_component_info_t* cmpinfo;
+  
+    num_of_hw_counters = PAPI_num_hwctrs(  );
+  
+    if (num_of_hw_counters<=0) {
+    	cmpinfo = PAPI_get_component_info( 0 );
+    	fprintf(stderr,"\nComponent %s disabled due to %s\n",
+    		cmpinfo->name, cmpinfo->disabled_reason);
+    }
+  
+    if(num_of_hw_counters < num_events){
+	  fprintf(stderr, "\n EVENT MULTIPLEX enabled as we found more events(%d) than avaliable counters(%d)\n",
+				 num_events, num_of_hw_counters);
+	  event_multiplex = true;
+	  if(PAPI_multiplex_init() != PAPI_OK){
+		fprintf(stderr,  "papi_multiplex_init : retval %s, file %s, line %d\n",
+			   PAPI_strerror(retval), __FILE__, __LINE__);	  
+	  }
+	}
+
 
   }
 #if 0  //TODO: fix the parameter
@@ -72,25 +97,8 @@ public:
   void set_perf_events( thread_t *thd ){
   
     char event_name[PAPI_MAX_STR_LEN];
-    int counters = 0;
     int tid =  thd->index;
     eventSet[tid]  = PAPI_NULL;
-  
-    const PAPI_component_info_t* cmpinfo;
-  
-    counters = PAPI_num_hwctrs(  );
-  
-    if (counters<=0) {
-    	cmpinfo = PAPI_get_component_info( 0 );
-    	fprintf(stderr,"\nComponent %s disabled due to %s\n",
-    		cmpinfo->name, cmpinfo->disabled_reason);
-    }
-  
-    if(counters < num_events){
-	  fprintf(stderr, "\n More events(%d) than avaliable counters(%d)\n",
-				 num_events, counters);
-    }
-  
     
     /* create the eventset */
     int retval = PAPI_create_eventset( &eventSet[tid] );
@@ -98,20 +106,54 @@ public:
        fprintf( stderr, "Error : PAPI_create_eventset File %s Line %d retval %d\n",
 			 __FILE__, __LINE__, retval );
     }
-  
-    //retval = PAPI_add_events( thd->eventSet, papi_events, NUM_EVENTS );
+
+	if(event_multiplex){
+	  if(PAPI_set_multiplex(eventSet[tid]) != PAPI_OK){
+		fprintf( stderr, "Error : PAPI_set_multiplex File %s Line %d retval %d\n",
+			 __FILE__, __LINE__, retval );	
+	  }
+	}
+
     for(int i=0; i<num_events; i++){ 
-	  retval = PAPI_add_event( eventSet[tid], perf_event[i] );
-  	  PAPI_event_code_to_name(perf_event[i], event_name);
+	  int native = 0x0;
+	  retval = PAPI_event_name_to_code(g_event_list[i],&native);
+	  if( retval != PAPI_OK ){
+		  fprintf( stderr, "ERROR: PAPI_event_code_to_name %s File %s Line %d retval %s\n", 
+				   g_event_list[i], __FILE__, __LINE__,PAPI_strerror(retval) );
+	  }
+#ifdef PERFPOINT_DEBUG
+	  else{
+		
+		PAPI_event_code_to_name(native, event_name);
+		fprintf(stderr, "Native event code %x for event %s\n", native, event_name);
+	  }
+#endif
+	  retval = PAPI_add_event( eventSet[tid], native);
   	  if( retval != PAPI_OK ){
-  	    	  fprintf( stderr, "Error : PAPI_add_event %s File %s Line %d retval %s\n", 
-				  event_name,  __FILE__, __LINE__, PAPI_strerror(retval) );
+  	    	  fprintf( stderr, "ERROR: PAPI_add_event %s File %s Line %d retval %s\n", 
+				   g_event_list[i], __FILE__, __LINE__,	  PAPI_strerror(retval) );
   	  }
-  	  //else{
-  	  //  printf("\n %s event added\n", event_name);
-  	  //}
-  
     }
+
+  
+    //for(int i=0; i<num_events; i++){ 
+	//  retval = PAPI_add_event( eventSet[tid], perf_event[i] );
+  	//  PAPI_event_code_to_name(perf_event[i], event_name);
+  	//  if( retval != PAPI_OK ){
+  	//    	  fprintf( stderr, "ERROR: File %s Line %d retval %s\n", 
+	//			  event_name,  __FILE__, __LINE__, PAPI_strerror(retval) );
+  	//  }
+    //}
+		//retval = PAPI_event_name_to_code("PAPI_TOT_INS",&native);
+	
+	//retval = PAPI_add_event( eventSet[tid], native );
+	//if( retval != PAPI_OK ){
+  	//    	  fprintf( stderr, "Native event name to code %s\n", 
+	//			   strerror(retval) );
+  	//}
+	//else{
+	//  fprintf(stderr, "Native event code %x\n", native);
+	//}
   
   }
 

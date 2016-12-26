@@ -20,7 +20,7 @@
 #include "libfuncs.h"
 
 
-#define NUM_EVENTS 3
+#define NUM_EVENTS 5 // 5 is the highest number without multiplexing
 
 typedef struct {
 
@@ -29,6 +29,8 @@ typedef struct {
 
 }perf_record_t;
 
+
+extern char *g_event_list[];
  // Whether current thread is inside backtrace phase
   // If yes, then we do not need to get backtrace for current malloc.
 //  extern __thread thread_t * current;

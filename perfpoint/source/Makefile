@@ -5,8 +5,8 @@ LD = $(CC)
 LDFLAGS = -L /usr/local/lib -Wl,-rpath /usr/local/lib -lpapi -lpthread 
 #LDFLAGS += -L /home/mejbah/papi/papi-5.5.1/src -Wl,-rpath=/home/mejbah/papi/papi-5.5.1/src -lpapi -lpthread
 #LDFLAGS += -lpthread -ldl  -shared -lpapi
-#CFLAGS += -I/home/mejbah/papi/papi-5.5.1/src -DPERF_EVENT #-DPAPI_PERF
-CFLAGS += -DPERF_EVENT  #-DPAPI_PERF
+#CFLAGS += -I/home/mejbah/papi/papi-5.5.1/src -DPERF_EVENT 
+CFLAGS += -DPERF_EVENT  #-DPERFPOINT_DEBUG#-DNEXT_EVENT_SET
 TARGET = libperfpoint.so 
 
 SRCS = $(wildcard *.c)

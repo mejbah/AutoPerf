@@ -16,23 +16,50 @@ __thread thread_t * current = NULL;
 bool _isMultithreading = false;
 
 #ifdef PERF_EVENT
+#ifndef NEXT_EVENT_SET
+char* g_event_list[NUM_EVENTS] =
+{
+  "PAPI_TOT_INS",
+  "PAPI_L1_ICM",
+  "PAPI_L1_DCM",
+  "PAPI_L2_TCM",
+//  "PAPI_L3_TCM",
+//  "MEM_LOAD_UOPS_LLC_MISS_RETIRED:REMOTE_HITM"
+  "OFFCORE_RESPONSE_0:LLC_HITM",
+//  "OFFCORE_RESPONSE_1:LLC_HITM"
+};
+//int papi_events[NUM_EVENTS] = 
+//{
+//	PAPI_TOT_INS,
+//	PAPI_L1_DCM,
+//	PAPI_L1_ICM,
+//	PAPI_L2_TCM,
+//	PAPI_L3_TCM
+//};
+#else
 int papi_events[NUM_EVENTS] = 
 {
-	PAPI_TOT_INS,
-	PAPI_TOT_CYC,
-	PAPI_L1_DCM 
+//	PAPI_FP_INS
+	PAPI_BR_INS,
+//	PAPI_BR_MSP,
+	PAPI_BR_NTK,
+//	PAPI_MEM_LOAD_UOPS_LLC_HIT_RETIRED|XSNP_HITM
+//	PAPI_TLB_DM,
+	
+//	PAPI_TLB_IM
+//	PAPI_STL_ICY
+//	OFFCORE_RESPONSE_1|LLC_HITM | SNP_MISS,
 //	PAPI_BR_MSP, 
 };
 #endif
 
+#endif
+
 void initializer (void) {
   init_real_functions();
-#ifdef PAPI_PERF
-  //initialize papi library
-  initPerfEvents();
-#endif
+
 #ifdef PERF_EVENT
-  xPerf::getInstance().init(papi_events, NUM_EVENTS);
+  xPerf::getInstance().init(NUM_EVENTS);
 #endif
 
   xrun::getInstance().initialize();

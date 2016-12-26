@@ -123,13 +123,14 @@
 	  int total_threads = xthread::getInstance().getMaxThreadIndex();
 	  stopThreadLevelInfo();	  
 	  Report::getInstance().reportOpen();
+	  Report::getInstance().write_results_header();
 	  for(int i=0; i < total_threads; i++){
 		Report::getInstance().write_results(_threads[i].perfRecords);
-	    int total_records = _threads[i].perfRecords.getEntriesNumb();
-	    
-	    for(int j=0; j<total_records; j++){
-	      fprintf(stderr, "Thread %d TOT CYC %lld\n", i, _threads[i].perfRecords.getEntry(j)->count[1]);
-	    }
+	    //int total_records = _threads[i].perfRecords.getEntriesNumb();
+	    //
+	    //for(int j=0; j<total_records; j++){
+	    //  fprintf(stderr, "Thread %d TOT CYC %lld\n", i, _threads[i].perfRecords.getEntry(j)->count[1]);
+	    //}
 	  }	 
 	  Report::getInstance().reportClose();
 		   
@@ -138,9 +139,6 @@
   // Initialize the first thread
   void initInitialThread(void) {
     int tindex;
-#ifdef PAPI_PERF
-	initPerfEventsforThread(pthread_self());
-#endif
 #ifdef PERF_EVENT
 	//	xPerf::getInstance().initPerfEventsforThread(pthread_self);
 	int retval = PAPI_thread_init( ( unsigned long ( * )( void ) )
@@ -168,9 +166,6 @@
 	current->perfRecords.initialize(xdefines::MAX_PERF_RECORDS_PER_THREAD);
 #endif
 
-#ifdef PAPI_PERF
-	set_perf_events(current);
-#endif
 #ifdef PERF_EVENT
 	//xPerf::getInstance().initPerfEventsforThread(pthread_self());
 	xPerf::getInstance().set_perf_events(current);
@@ -305,13 +300,14 @@
 
     // Allocate a global thread index for current thread.
     tindex = allocThreadIndex();
-	
+#ifdef PERFPOINT_DEBUG	
 	printf("pthread create  index : %d\n", tindex);
+#endif
     thread_t * children = getThreadInfoByIndex(tindex);
     
     children->startRoutine = fn;
     children->startArg = arg;
-#if 0//def PAPI_PERF	
+#if 0
 	int retval = pthread_attr_setscope( attr, PTHREAD_SCOPE_SYSTEM );
 	if( retval != 0 ){
 	  fprintf(stderr, "pthread attr setscope:: %s : %d\n",__FILE__,__LINE__);
@@ -379,12 +375,6 @@
 
     current->self = pthread_self();
 	current->tid = gettid();
-#ifdef PAPI_PERF
-	initPerfEventsforThread(pthread_self());
-	registerThreadForPAPI();
-	//((thread_t*)arg)->perfRecords.initialize(xdefines::MAX_PERF_RECORDS_PER_THREAD);
-	set_perf_events((thread_t*)arg);
-#endif
 
 #ifdef PERF_EVENT
 	//xPerf::getInstance().initPerfEventsforThread(pthread_self());
@@ -398,10 +388,6 @@
 
     //fprintf(stderr, "CHILD:tid %d index %d\n", current->tid, current->eventSet);
 
-#ifdef PAPI_PERF
-	long long s = PAPI_get_real_cyc();
-	start_perf_counters((thread_t*)arg); 
-#endif
 #ifdef PERF_EVENT
 	long long s = PAPI_get_real_cyc();
 	//xPerf::getInstance().start_perf_counters((thread_t*)arg); 
@@ -410,20 +396,14 @@
 	
     result = current->startRoutine(current->startArg);
 
-#ifdef PAPI_PERF
-	//int next_index = (thread_t*)arg->perfRecords.get_next_index();
-	stop_and_record_perf_counters((thread_t*)arg);
-	long long e = PAPI_get_real_cyc();
-	printf("Wallclock cycles: %lld\n",e-s);
-	unregisterThreadForPAPI();
-	
-#endif
 
 #ifdef PERF_EVENT
+#ifdef PERPOINT_DEBUG
 	//xPerf::getInstance().stop_and_record_perf_counters((thread_t*)arg);
 	long long e = PAPI_get_real_cyc();
 	printf("Wallclock cycles: %lld\n",e-s);
 	xPerf::getInstance().unregisterThreadForPAPI();
+#endif
 	
 #endif
 

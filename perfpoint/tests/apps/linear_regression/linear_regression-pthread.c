@@ -61,7 +61,9 @@ typedef struct
     long long SXX;
     long long SYY; 
     long long SXY;
-//	char dummy[54]; //uncomment for no false sharing
+#ifdef NO_FALSE_SHARING
+	char dummy[54]; //uncomment for no false sharing
+#endif
 } lreg_args;
 
 /* linear_regression_pthread
