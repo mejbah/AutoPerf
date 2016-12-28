@@ -16,43 +16,41 @@ __thread thread_t * current = NULL;
 bool _isMultithreading = false;
 
 #ifdef PERF_EVENT
-#ifndef NEXT_EVENT_SET
+#ifdef PERFPOINT_EVENT_SET_1
+char* g_event_list[NUM_EVENTS] =
+{
+  "PAPI_TOT_INS", //1
+  "PAPI_L1_ICM",  //2
+  "PAPI_L1_DCM",  //3
+  "PAPI_L2_DCM",  //4
+  "PAPI_L2_ICM"  //5
+};
+#elif PERFPOINT_EVENT_SET_2
 char* g_event_list[NUM_EVENTS] =
 {
   "PAPI_TOT_INS",
-  "PAPI_L1_ICM",
-  "PAPI_L1_DCM",
-  "PAPI_L2_TCM",
-//  "PAPI_L3_TCM",
-//  "MEM_LOAD_UOPS_LLC_MISS_RETIRED:REMOTE_HITM"
-  "OFFCORE_RESPONSE_0:LLC_HITM",
-//  "OFFCORE_RESPONSE_1:LLC_HITM"
+  "PAPI_BR_UCN", //6
+  "PAPI_BR_MSP", //7
+  "L2_LINES_IN:S",//8
+  "PAPI_BR_CN"
+  //"PAPI__"
+  //"perf::PAGE-FAULTS",
 };
-//int papi_events[NUM_EVENTS] = 
-//{
-//	PAPI_TOT_INS,
-//	PAPI_L1_DCM,
-//	PAPI_L1_ICM,
-//	PAPI_L2_TCM,
-//	PAPI_L3_TCM
-//};
 #else
-int papi_events[NUM_EVENTS] = 
+char* g_event_list[NUM_EVENTS] =
 {
-//	PAPI_FP_INS
-	PAPI_BR_INS,
-//	PAPI_BR_MSP,
-	PAPI_BR_NTK,
-//	PAPI_MEM_LOAD_UOPS_LLC_HIT_RETIRED|XSNP_HITM
-//	PAPI_TLB_DM,
-	
-//	PAPI_TLB_IM
-//	PAPI_STL_ICY
-//	OFFCORE_RESPONSE_1|LLC_HITM | SNP_MISS,
-//	PAPI_BR_MSP, 
+  "PAPI_TOT_INS",
+  "RESOURCE_STALLS:ANY",//10
+  "RESOURCE_STALLS:SB",//11
+  "OFFCORE_RESPONSE_0:ANY_REQUEST:LLC_HITM:HITM",//12
+  "PAPI_TOT_CYC"
+//  "perf::PERF_COUNT_SW_CONTEXT_SWITCHES",//13
+//  "MACHINE_CLEARS:MEMORY_ORDERING",
+//  "MEM_LOAD_UOPS_LLC_MISS_RETIRED:REMOTE_HITM",
+//  "MEM_LOAD_LLC_HIT_RETIRED:XSNP_HITM"
 };
-#endif
 
+#endif
 #endif
 
 void initializer (void) {

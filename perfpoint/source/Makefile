@@ -1,12 +1,16 @@
 CC = gcc
-#CFLAGS= -I. -D_GNU_SOURCE -fPIC -DORIGINAL -DMY_DEBUG
-CFLAGS= -g -O2 -fno-omit-frame-pointer -I. -D_GNU_SOURCE -fPIC -DWITH_TRYLOCK -DREPORT_LINE_INFO #-DCONTEXT_SORT #-DGET_STATISTICS  
+CFLAGS= -g -O2 -fno-omit-frame-pointer -I.  -fPIC 
 LD = $(CC)
 LDFLAGS = -L /usr/local/lib -Wl,-rpath /usr/local/lib -lpapi -lpthread 
+
+
 #LDFLAGS += -L /home/mejbah/papi/papi-5.5.1/src -Wl,-rpath=/home/mejbah/papi/papi-5.5.1/src -lpapi -lpthread
 #LDFLAGS += -lpthread -ldl  -shared -lpapi
 #CFLAGS += -I/home/mejbah/papi/papi-5.5.1/src -DPERF_EVENT 
-CFLAGS += -DPERF_EVENT  #-DPERFPOINT_DEBUG#-DNEXT_EVENT_SET
+
+
+CFLAGS += -DPERF_EVENT #-DPERFPOINT_DEBUG
+#CFLAGS += -DPERFPOINT_EVENT_SET_2 #-DPERFPOINT_EVENT_SET_1 
 TARGET = libperfpoint.so 
 
 SRCS = $(wildcard *.c)

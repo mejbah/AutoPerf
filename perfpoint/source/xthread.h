@@ -125,7 +125,7 @@
 	  Report::getInstance().reportOpen();
 	  Report::getInstance().write_results_header();
 	  for(int i=0; i < total_threads; i++){
-		Report::getInstance().write_results(_threads[i].perfRecords);
+		Report::getInstance().write_results(_threads[i].perfRecords, total_threads);
 	    //int total_records = _threads[i].perfRecords.getEntriesNumb();
 	    //
 	    //for(int j=0; j<total_records; j++){

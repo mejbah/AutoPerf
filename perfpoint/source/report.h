@@ -85,19 +85,20 @@ public:
   }
 #endif
 	void write_results_header(){
-	  fs << "Mark_id";
+	  fs << "Mark_id" << ", "<<"NTHREADS" ;
 	  for(int i=0; i<NUM_EVENTS; i++){
 		fs << ", "<< g_event_list[i] ;
 	  }
 	  fs << "\n";
 
 	}
-	void write_results( RecordEntries<perf_record_t>&records){
+	void write_results( RecordEntries<perf_record_t>&records, int total_threads){
 
 	  int total_records = records.getEntriesNumb();
 	   
 		for(int i=0; i<total_records; i++) {
 		  fs << records.getEntry(i)->mark;
+		  fs << ", " << total_threads;
 		  for(int j=0; j<NUM_EVENTS; j++){
 			fs << ", " << records.getEntry(i)->count[j] ;
 		  }
