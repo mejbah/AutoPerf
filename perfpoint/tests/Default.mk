@@ -8,8 +8,8 @@ CC = gcc
 CXX = g++ 
 CFLAGS += -g -O #-fno-omit-frame-pointer
 
-#CONFIGS = pthread $(MYLIB)
-CONFIGS = $(MYLIB)
+CONFIGS = pthread $(MYLIB)
+#CONFIGS = $(MYLIB)
 PROGS = $(addprefix $(TEST_NAME)-, $(CONFIGS))
 
 .PHONY: default all clean
@@ -50,11 +50,13 @@ $(TEST_NAME)-pthread: $(PTHREAD_OBJS)
 
 eval-pthread: $(TEST_NAME)-pthread
 	time ./$(TEST_NAME)-pthread $(TEST_ARGS)
+
 #time ./$(TEST_NAME)-pthread $(TEST_ARGS) &> /dev/null
 
 ############ $(MYLIB) builders ############
 
-MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG #-I/home/mejbah/perfpoint/source
+MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I/home/mejbah/git_clones/Perf-Anomaly/perfpoint/source  -DPERFPOINT
+
 RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /usr/local/lib
 
 #PAPI_LIB += /home/mejbah/papi/papi-5.5.1/src/libpapi.a

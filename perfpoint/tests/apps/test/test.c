@@ -29,7 +29,9 @@ Master pthread:
 */
 
 #include <pthread.h>
-//#include "perfpoint.h"
+#ifdef PERFPOINT
+#include "perfpoint.h"
+#endif
 
 //#include "papi_test.h"
 
@@ -93,13 +95,21 @@ Thread( void *arg )
 //	if ( retval != PAPI_OK ) {
 //		test_fail( __FILE__, __LINE__, "PAPI_start", retval );
 //	}
+#ifdef PERFPOINT
 	perfpoint_START(1);
+#endif
 	do_flops( *( int * ) arg );
+#ifdef PERFPOINT
 	perfpoint_END();
+#endif
 
+#ifdef PERFPOINT
 	perfpoint_START(2);
+#endif
 	do_flops( *( int * ) arg );
+#ifdef PERFPOINT
 	perfpoint_END();
+#endif
 
 
 //	retval = PAPI_stop( EventSet1, values[0] );

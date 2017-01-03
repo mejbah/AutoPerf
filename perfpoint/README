@@ -1,8 +1,42 @@
-- performance counter monitor
-- API:
-	  #include "perfpoint.h"
-	  perfpoint_START()
-	  perfpoint_END()
+=====================
+# HOW TO RUN EXPERIMENTS
+======================
 
-	  TODO: use mark_id as parameter to uniquely identify code region
+1. Change the code in application to annotate code regions of interest
+  - API:
+	  #include "perfpoint.h"
+	  perfpoint_START(marker_id)
+	  perfpoint_END(marker_id)
+	  NOTE: use mark_id as parameter to uniquely identify code region
+
+
+
+2. Change makefile in ./source/Makefile:
+	 CFLAGS += -DPERFPOINT_EVENT_SET_1 #-DPERFPOINT_EVENT_SET_2
+   choole one of three event set each time. Instead of event multiplexing I choose to use multiple run with differetn eventset
+	
+3. cd soure. and run Make each time
+
+4. In applictation use ./runtest.py [number] where number is the EVENT_SET number used in Malefile
+
+5. Now use the autoencoder in ./scripts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=========
+# NOTES
+==========
+- Autoencoder: theanet
+  http://theanets.readthedocs.io/en/stable/api/generated/theanets.feedforward.Autoencoder.html
 
