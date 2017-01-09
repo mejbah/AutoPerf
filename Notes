@@ -1,3 +1,39 @@
+01-08-2017
+==========
+Performance Bugs: [ Paper : Lightweight, High-Resolution Monitoring
+for Troubleshooting Production Systems ]
+1. Busy Loop:
+	High CPU utilization (cpuu) with a low
+(nearly-zero) L2-cache-miss rate (l2mi) is a symptom of
+a busy loop; i.e., a loop that is unproductive but that does
+not yield the CPU to the scheduler. This is because processes
+in busy loops consume CPU resources but do not
+generate much memory traffic. The value of l2mi gives
+a rough approximation of memory traffic, and when it is
+seen to be low with a high cpuu, it usually amounts to a
+busy loop.
+
+2. Memory Leak:
+	An increase in the net (user or kernel) memory
+allocated is an indicator of a memory leak.
+
+3. lock, i/o, sock contention:
+	When the resource blocking vital (blck) for 
+a process is high, then it is typically mirrored by one
+or more of the following vitals: disk I/O (blio), locking
+(lock) or socket traffic (sock), thereby isolating the source
+of the blockage.
+
+4. 
+	: When the combined value of cpuu for processes
+is low, scheduling delay (sched) is high, and the
+total cpuu is high for the system, it is often a sign of a
+kernel bottleneck (e.g., a high-priority kernel thread). In
+this case, processes are not scheduled because the scheduler
+is not given a chance to run. This rule also applies to
+preemptable kernels, with the caveat that the symptoms
+are less conspicuous.
+
 11-21-2016
 ===========
 1. fuction level perf counters
