@@ -28,3 +28,9 @@
 27. http://www.jmlr.org/proceedings/papers/v39/tagawa14.pdf [Contribution Analysis]
 28. Outlier Detection Using Replicator Neural Networks
 29. Lightweight, High-Resolution Monitoring for Troubleshooting Production Systems[OSDI'08]
+30. Scalable Analysis Techniques for Microprocessor Performance Counter Metrics[SC'02]
+    *why large parformance metric space is a problem for analysis, varible reduction using PCA 
+    *annotate code for collecting performance measurement
+    *rule based performance optimization
+    *realted works of this paper
+
