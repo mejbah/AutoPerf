@@ -97,7 +97,7 @@ public:
   enum { PAGE_SIZE_MASK = (PAGE_SIZE-1) };
 
   enum { MAX_THREADS = 2048 };//4096 };
-  enum { MAX_PERF_RECORDS_PER_THREAD = 10000 };
+  enum { MAX_PERF_RECORDS_PER_THREAD = 100000 };
   
 	//enum { MAX_SYNC_ENTRIES = 0x10000 };
 
