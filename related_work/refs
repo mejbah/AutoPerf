@@ -34,4 +34,5 @@
     *rule based performance optimization
     *realted works of this paper
 31. Extracting and composing robust features with denoising autoencoders [ICML'08]
+32. Performance debugging in the large via mining millions of stack traces [ICSE '12]
 
