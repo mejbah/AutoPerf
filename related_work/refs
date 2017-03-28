@@ -33,4 +33,9 @@
     *annotate code for collecting performance measurement
     *rule based performance optimization
     *realted works of this paper
-
+31. Extracting and composing robust features with denoising autoencoders [ICML'08]
+32. Performance debugging in the large via mining millions of stack traces [ICSE '12]
+33. http://mikaelronstrom.blogspot.com/2012/04/mysql-team-increases-scalability-by-50.html
+34. Deep structured energy based models for anomaly detection [ICML '16]
+35. Anomaly? Application Change? or Workload Change?
+Towards Automated Detection ofApplication Performance Anomaly and Change* [DSN'08]
