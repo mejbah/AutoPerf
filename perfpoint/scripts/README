@@ -1,0 +1,27 @@
+Edit the number of test and training run in the script
+run:
+python create_dataset.py ../tests/apps/reverse_index/training_data ../tests/apps/reverse_index/test_data
+
+->default outputfile: root.out
+
+
+python autoencoder.py ../tests/real_apps/boost_false_sharing/training_data 12 ../tests/real_apps/boost_false_sharing/test_data 2 ../results/boost
+
+
+THEANETS
+=======
+
+https://groups.google.com/forum/#!searchin/theanets/itertrain%7Csort:relevance/theanets/STqAnPSYEHo/elfMXRCDUb8J
+
+http://theanets.readthedocs.io/en/stable/index.html?highlight=climate
+
+
+
+TEST SCRIPT COMMANDS
+====================
+python perfpoint_trainer.py /home/mejbah/git_clones/Perf-Anomaly/perfpoint/tests/real_apps/mysql/sysbench/build/bin/no_false_sharing/train /home/mejbah/git_clones/Perf-Anomaly/perfpoint/tests/real_apps/mysql/sysbench/build/bin/false_sharing /home/mejbah/git_clones/Perf-Anomaly/perfpoint/tests/real_apps/mysql/sysbench/build/bin/no_false_sharing/validation ../results/real_apps/mysql
+
+
+-command for dataset analyze
+python perfpoint_trainer.py /home/mejbah/git_clones/Perf-Anomaly/perfpoint/tests/real_apps/boost_spin_bench/data_backup_no_variation/perf_results /home/mejbah/git_clones/Perf-Anomaly/perfpoint/tests/real_apps/boost_false_sharing/perf_results /home/mejbah/git_clones/Perf-Anomaly/perfpoint/tests/real_apps/boost_spin_bench/perf_results_validation
+
