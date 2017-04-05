@@ -11,6 +11,7 @@
 11. An Approach to Performance Prediction for Parallel Applications [EuroPar 05]
 12. Using Cycle Stacks to Understand Scaling Bottlenecks in Multi-Threaded Workloads [IISWC 2011]
 13. Detection of false sharing using machine learning [SC 13]
+    source: https://github.com/a5anka/pamla/tree/master/falsesharing
 14. Maximizing Hardware Prefetch Effectiveness with Machine Learning [hpcc 15]
 15. Dynamic cache contention detection in multi-threaded applications[VEE 11]
 16. Approximate Graph Clustering for Program Characterization [TACO 12]
@@ -38,4 +39,5 @@
 33. http://mikaelronstrom.blogspot.com/2012/04/mysql-team-increases-scalability-by-50.html
 34. Deep structured energy based models for anomaly detection [ICML '16]
 35. Anomaly? Application Change? or Workload Change?
-Towards Automated Detection ofApplication Performance Anomaly and Change* [DSN'08]
+36. Towards Automated Detection ofApplication Performance Anomaly and Change* [DSN'08]
+37.  UBL: Unsupervised Behavior Learning for Predicting Performance Anomalies in Virtualized Cloud Systems [ICAC'12]
