@@ -41,3 +41,6 @@
 35. Anomaly? Application Change? or Workload Change?
 36. Towards Automated Detection ofApplication Performance Anomaly and Change* [DSN'08]
 37.  UBL: Unsupervised Behavior Learning for Predicting Performance Anomalies in Virtualized Cloud Systems [ICAC'12]
+PERFORMANCE REGRESSION:
+38. Performance Regression Testing Target Prioritization via Performance Risk Analysis[ICSE '14]
+39. Mining Performance Regression Inducing Code Changes in Evolving Software {MSR '16]
