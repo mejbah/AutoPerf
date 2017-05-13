@@ -44,3 +44,5 @@
 PERFORMANCE REGRESSION:
 38. Performance Regression Testing Target Prioritization via Performance Risk Analysis[ICSE '14]
 39. Mining Performance Regression Inducing Code Changes in Evolving Software {MSR '16]
+INTERFERENCE DETECTION AND FIX:
+40. So many performance events, so little time [ApSys'16]
