@@ -9,6 +9,8 @@
   #include <stdlib.h>
   #include <stdio.h>
   #include <string.h> 
+  //#include <string> 
+  //#include <cstring>
   #include <assert.h> 
   #include <fstream>
   #include <iostream>
@@ -104,6 +106,7 @@
 	  _threadIndex = 0;
 	  _origThreadId = gettid();
 
+	  
 		  //init lock with original init function
 	  WRAP(pthread_mutex_init)(&_lock, NULL); 
 
@@ -112,7 +115,7 @@
 
 	  // Set this thread level information to 0.
 	  memset(&_threadLevelInfo, 0, sizeof(struct threadLevelInfo)*xdefines::MAX_THREAD_LEVELS);
-
+	  
 	  // Allocate the threadindex for current thread
 	  initInitialThread();
 	}
@@ -165,13 +168,16 @@
 #ifdef PERF_EVENT
 	current->perfRecords.initialize(xdefines::MAX_PERF_RECORDS_PER_THREAD);
 #endif
-
+	
 #ifdef PERF_EVENT
+	xPerf::getInstance().registerThreadForPAPI();
 	//xPerf::getInstance().initPerfEventsforThread(pthread_self());
 	xPerf::getInstance().set_perf_events(current);
+	//xPerf::getInstance().set_perf_events(getThreadInfoByIndex(tindex));
 #endif
 
 	setPrivateStackTop(true);
+	
 
   }
 
@@ -389,7 +395,10 @@
     //fprintf(stderr, "CHILD:tid %d index %d\n", current->tid, current->eventSet);
 
 #ifdef PERF_EVENT
+	
+#ifdef PERPOINT_DEBUG
 	long long s = PAPI_get_real_cyc();
+#endif
 	//xPerf::getInstance().start_perf_counters((thread_t*)arg); 
 #endif
 
@@ -402,9 +411,8 @@
 	//xPerf::getInstance().stop_and_record_perf_counters((thread_t*)arg);
 	long long e = PAPI_get_real_cyc();
 	printf("Wallclock cycles: %lld\n",e-s);
-	xPerf::getInstance().unregisterThreadForPAPI();
 #endif
-	
+	xPerf::getInstance().unregisterThreadForPAPI();
 #endif
 
 	

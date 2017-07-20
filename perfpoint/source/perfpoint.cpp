@@ -4,7 +4,7 @@
 #include "perfevent.h"
 
 //unique mark 
-void perfpoint_START(int mark){
+void perfpoint_START(int mark ){ //counter index in global list
   int tindex = getThreadIndex();
   thread_t* thread = xthread::getInstance().getThreadInfoByIndex(tindex);
   xPerf::getInstance().start_perf_counters(thread, mark);

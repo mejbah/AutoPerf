@@ -21,6 +21,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+//#include <string>
 #include <unistd.h>
 
 //#include "log.hh"
@@ -43,7 +44,7 @@ public:
     ptr = MM::mmapAllocatePrivate(_size);
     if(ptr == NULL) {
      // PRWRN("%d fail to allocate sync event pool entries : %s\n", getpid(), strerror(errno));
-			printf("%d fail to allocate sync event pool entries : %s\n", getpid(), strerror(errno));
+			printf("%d fail to allocate sync event pool entries \n", getpid());
       ::abort();
     }
 
@@ -72,7 +73,8 @@ public:
   }
 #endif
 	size_t get_next_index() {
-		int val = __atomic_fetch_add(&_cur,1, __ATOMIC_RELAXED);
+		//int val = __atomic_fetch_add(&_cur,1, __ATOMIC_RELAXED);
+		int val = __sync_fetch_and_add(&_cur,1);
 
 		if(val < _total){
 			return val;		

@@ -16,55 +16,64 @@ __thread thread_t * current = NULL;
 bool _isMultithreading = false;
 
 #ifdef PERF_EVENT
-#ifdef PERFPOINT_EVENT_SET_1
 char* g_event_list[NUM_EVENTS] =
 {
-  "PAPI_TOT_INS", //1
-  "PAPI_L1_ICM",  //2
-  "PAPI_L1_DCM",  //3
-  "PAPI_L2_DCM",  //4
-  "PAPI_L2_ICM"  //5
-};
-#elif PERFPOINT_EVENT_SET_2
-char* g_event_list[NUM_EVENTS] =
-{
-  "PAPI_TOT_INS",
-  "PAPI_BR_UCN", //6
-  "PAPI_BR_MSP", //7
-  "L2_LINES_IN:S",//8
-  "PAPI_BR_CN"
-  //"PAPI__"
-  //"perf::PAGE-FAULTS",
-};
-#else
-char* g_event_list[NUM_EVENTS] =
-{
-  "PAPI_TOT_INS",
-  "RESOURCE_STALLS:ANY",//10
-  "RESOURCE_STALLS:SB",//11
-  "OFFCORE_RESPONSE_0:ANY_REQUEST:LLC_HITM:HITM",//12
-  "PAPI_TOT_CYC"
-//  "perf::PERF_COUNT_SW_CONTEXT_SWITCHES",//13
-//  "MACHINE_CLEARS:MEMORY_ORDERING",
-//  "MEM_LOAD_UOPS_LLC_MISS_RETIRED:REMOTE_HITM",
-//  "MEM_LOAD_LLC_HIT_RETIRED:XSNP_HITM"
+  "PAPI_TOT_INS", //0
+  "OFFCORE_RESPONSE_0:ANY_REQUEST:LLC_MISS_REMOTE_DRAM", 
+  "OFFCORE_RESPONSE_0:ANY_REQUEST:HITM",
+  "L3_LAT_CACHE:MISS",
+  "L3_LAT_CACHE:REFERENCE",
+  "PAPI_L1_ICM",  //1
+  "PAPI_L1_DCM",  //2
+  "PAPI_L2_ICM",  //3
+  "L2_LINES_IN:S",//4
+  "PAPI_L2_TCM", //5
+  "PAPI_L3_TCM", //6
+  "PAPI_TLB_IM", //7
+  "PAPI_L1_LDM", //8
+  "PAPI_L1_STM", //9
+  "PAPI_L2_STM", //10
+  "PAPI_STL_ICY", //11
+  "PAPI_BR_CN", //12
+  "PAPI_BR_NTK", //13
+  "PAPI_BR_MSP", //14
+  "PAPI_LD_INS", //15
+  "PAPI_SR_INS", //16
+  "PAPI_BR_INS", //17
+  "PAPI_TOT_CYC", //18
+  "PAPI_L2_DCA", //19
+  "PAPI_L2_DCR", //20
+  "PAPI_L3_DCR", //21
+  "PAPI_L2_DCW", //22
+  "PAPI_L3_DCW", //23
+  "PAPI_L2_ICH", //24   0x8000004a  Yes   No   Level 2 instruction cache hits
+  "PAPI_L2_ICA", //25  0x8000004d  Yes   No   Level 2 instruction cache accesses
+  "PAPI_L3_ICA", //26  0x8000004e  Yes   No   Level 3 instruction cache accesses
+  "PAPI_L2_ICR", //27  0x80000050  Yes   No   Level 2 instruction cache reads
+  "PAPI_L3_ICR", //28  0x80000051  Yes   No   Level 3 instruction cache reads
+  "PAPI_L2_TCA", //29  0x80000059  Yes   Yes  Level 2 total cache accesses
+  "PAPI_L3_TCA", //30  0x8000005a  Yes   No   Level 3 total cache accesses
+  "PAPI_L2_TCR",  //31 0x8000005c  Yes   Yes  Level 2 total cache reads
+  "PAPI_L3_TCR",  //32 0x8000005d  Yes   Yes  Level 3 total cache reads
+  "PAPI_L2_TCW", //33  0x8000005f  Yes   No   Level 2 total cache writes
+  "PAPI_L3_TCW", //34  0x80000060  Yes   No   Level 3 total cache writes
+//  "PAPI_FDV_INS" //32 0x80000063  Yes   No   Floating point divide instructions
+  
 };
 
-#endif
 #endif
 
 void initializer (void) {
   init_real_functions();
 
 #ifdef PERF_EVENT
-  xPerf::getInstance().init(NUM_EVENTS);
+  xPerf::getInstance().init();
 #endif
-
   xrun::getInstance().initialize();
 
   initialized = true;
   
-  fprintf(stderr, "Now we have initialized successfuuly\n"); 
+  fprintf(stderr, "Perfpoint initialization complete\n"); 
   
 }
 

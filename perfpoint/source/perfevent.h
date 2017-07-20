@@ -5,6 +5,7 @@
 #include "pthread.h"
 #include "threadmods.h"
 #include "xdefines.h"
+#include "cstdlib"
 
 
 
@@ -14,7 +15,9 @@ class xPerf {
 private:
   int *perf_event;
   int num_events;
+  int event_number_in_global_list; //perfpoint sample TOT_INS(event number 0) and this "event_number_in_global_list" in each execution
   int num_of_hw_counters;
+  bool eventset_initialized;
   bool event_multiplex;
   int eventSet[xdefines::MAX_THREADS]; //eventSet for each thread
 
@@ -27,11 +30,12 @@ public:
 	return *singleton;
   }
   
-  void init(int numberOfEvents){
-	//memset(&perf_event, 0, sizeof(int));
-	//memset(&eventSet, PAPI_NULL, sizeof(int));
-	num_events = numberOfEvents;
+  void init(){
+	//num_events = numberOfEvents;
+	//num_events = 2;
+	num_events = xdefines::NUM_EVENTS_TO_MONITOR;
 	event_multiplex = false;
+	eventset_initialized = false;
 	//perf_event = new int[numberOfEvents];
 	//for(int i=0; i < numberOfEvents; i++){
 	//  perf_event[i]= events[i];
@@ -93,13 +97,29 @@ public:
 	return retval;
   }  
 
+  void setMonitoringEventName(){ //from  env variable
+	 char* env_p = std::getenv("PERFPOINT_EVENT_INDEX");
+	 event_number_in_global_list = atoi(env_p);
+	 assert(event_number_in_global_list >=0 && event_number_in_global_list < NUM_EVENTS);
+  }
+  char* getMonitringEventName(){
+	return g_event_list[event_number_in_global_list];
+  }
+  //set TOT_INS and multiple other event(number of event equal to num_event-1)
+  void set_multiple_perf_events( thread_t *thd ){
 
+	return;
+  }
+
+
+  //set TOT_INS and one other event 
   void set_perf_events( thread_t *thd ){
-  
+	 
+    setMonitoringEventName(); //from  env variable
     char event_name[PAPI_MAX_STR_LEN];
     int tid =  thd->index;
     eventSet[tid]  = PAPI_NULL;
-    
+	
     /* create the eventset */
     int retval = PAPI_create_eventset( &eventSet[tid] );
     if ( retval != PAPI_OK ) {
@@ -114,13 +134,13 @@ public:
 	  }
 	}
 
-    for(int i=0; i<num_events; i++){ 
-	  int native = 0x0;
-	  retval = PAPI_event_name_to_code(g_event_list[i],&native);
-	  if( retval != PAPI_OK ){
-		  fprintf( stderr, "ERROR: PAPI_event_code_to_name %s File %s Line %d retval %s\n", 
-				   g_event_list[i], __FILE__, __LINE__,PAPI_strerror(retval) );
-	  }
+	//int native = 0x0;
+	unsigned int native = 0x0;
+	retval = PAPI_event_name_to_code(g_event_list[0],&native); //TOT_INS
+	if( retval != PAPI_OK ){
+	  fprintf( stderr, "ERROR: PAPI_event_code_to_name %s File %s Line %d retval %s\n", 
+				   g_event_list[0], __FILE__, __LINE__,PAPI_strerror(retval) );
+	}
 #ifdef PERFPOINT_DEBUG
 	  else{
 		
@@ -128,13 +148,35 @@ public:
 		fprintf(stderr, "Native event code %x for event %s\n", native, event_name);
 	  }
 #endif
-	  retval = PAPI_add_event( eventSet[tid], native);
-  	  if( retval != PAPI_OK ){
-  	    	  fprintf( stderr, "ERROR: PAPI_add_event %s File %s Line %d retval %s\n", 
-				   g_event_list[i], __FILE__, __LINE__,	  PAPI_strerror(retval) );
-  	  }
-    }
+	retval = PAPI_add_event( eventSet[tid], native);
+  	if( retval != PAPI_OK ){
+  	    fprintf( stderr, "ERROR: PAPI_add_event %s File %s Line %d retval %s\n", 
+			   g_event_list[0], __FILE__, __LINE__,	  PAPI_strerror(retval) );
+  	}
 
+	fprintf( stderr, "Event %s added for thread %d\n", g_event_list[0], tid );
+
+	
+	native = 0x0;
+	retval = PAPI_event_name_to_code(g_event_list[event_number_in_global_list],&native);
+	if( retval != PAPI_OK ){
+	  fprintf( stderr, "ERROR: PAPI_event_code_to_name %s File %s Line %d retval %s\n", 
+				   g_event_list[event_number_in_global_list], __FILE__, __LINE__,PAPI_strerror(retval) );
+	}
+#ifdef PERFPOINT_DEBUG
+	  else{
+		
+		PAPI_event_code_to_name(native, event_name);
+		fprintf(stderr, "Native event code %x for event %s\n", native, event_name);
+	  }
+#endif
+	retval = PAPI_add_event( eventSet[tid], native);
+  	if( retval != PAPI_OK ){
+  	    fprintf( stderr, "ERROR: PAPI_add_event %s File %s Line %d retval %s\n", 
+			   g_event_list[event_number_in_global_list], __FILE__, __LINE__,	  PAPI_strerror(retval) );
+  	}
+	eventset_initialized = true;
+	fprintf( stderr, "Event %s added for thread %d\n" ,g_event_list[event_number_in_global_list], tid );
   
     //for(int i=0; i<num_events; i++){ 
 	//  retval = PAPI_add_event( eventSet[tid], perf_event[i] );
@@ -160,8 +202,10 @@ public:
   int start_perf_counters( thread_t *thd, int mark )
   {
     //int eventSet = set_perf_events();
+	assert(eventset_initialized);
 	int tid = thd->index;
 	thd->current_mark = mark;
+
     int retval = PAPI_start(eventSet[tid]);
     if ( retval != PAPI_OK ) {
        fprintf( stderr, "Error : PAPI_start retval %s\n", PAPI_strerror(retval) );

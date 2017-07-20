@@ -20,12 +20,13 @@
 #include "libfuncs.h"
 
 
-#define NUM_EVENTS 5 // 5 is the highest number without multiplexing
+#define NUM_EVENTS 39 // 5 is the highest number without multiplexing
 
 typedef struct {
 
   int mark; //uniqe identified of code location?
-  long long count[NUM_EVENTS];
+  //long long count[NUM_EVENTS];
+  long long count[2];
 
 }perf_record_t;
 
@@ -97,7 +98,8 @@ public:
   enum { PAGE_SIZE_MASK = (PAGE_SIZE-1) };
 
   enum { MAX_THREADS = 2048 };//4096 };
-  enum { MAX_PERF_RECORDS_PER_THREAD = 100000 };
+  enum { MAX_PERF_RECORDS_PER_THREAD = 500000 };
+  enum { NUM_EVENTS_TO_MONITOR = 2 };
   
 	//enum { MAX_SYNC_ENTRIES = 0x10000 };
 

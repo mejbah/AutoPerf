@@ -54,18 +54,18 @@ public:
 	static void sigHandler(int signum) {
     if(signum == SIGINT) {
 			fprintf(stderr, "Recieved SIGINT, Genearting Report\n");
-			//report_mutex_conflicts();	
-			//report_thread_waits();
+			xthread::getInstance().finalize();
       exit(0);
     }
     else if (signum == SIGUSR2) {
       fprintf(stderr, "Recieving SIGUSR2, check false sharing now:\n");
       //xmemory::getInstance().reportFalseSharing();
+	  //xthread::getInstance().finalize();
     }
   }
 
   /// The memory manager (for both heap and globals).
-//  xmemory&     _memory;
+  //  xmemory&     _memory;
 };
 
 

@@ -9,7 +9,7 @@
 #include "recordentries.hh"
 #include<map>
 #include<vector>
-//#include<string.h>
+#include<string.h>
 
 #define MAXBUFSIZE 4096
 
@@ -85,23 +85,23 @@ public:
   }
 #endif
 	void write_results_header(){
-	  fs << "Mark_id" << ", "<<"NTHREADS" ;
-	  for(int i=0; i<NUM_EVENTS; i++){
-		fs << ", "<< g_event_list[i] ;
-	  }
+	  fs << "Mark_id" << ", "<<"NTHREADS" << "," << g_event_list[0] << ", " << xPerf::getInstance().getMonitringEventName();
 	  fs << "\n";
 
 	}
 	void write_results( RecordEntries<perf_record_t>&records, int total_threads){
 
 	  int total_records = records.getEntriesNumb();
-	   
+	  fprintf(stderr, "\n\nPERFPOINT :: Number of records %d\n", total_records); 
 		for(int i=0; i<total_records; i++) {
 		  fs << records.getEntry(i)->mark;
 		  fs << ", " << total_threads;
-		  for(int j=0; j<NUM_EVENTS; j++){
-			fs << ", " << records.getEntry(i)->count[j] ;
-		  }
+		  //for(int j=0; j<NUM_EVENTS; j++){
+		  //	fs << ", " << records.getEntry(i)->count[j] ;
+		  //}
+		  
+		  fs << ", " << records.getEntry(i)->count[0] ;
+		  fs << ", " << records.getEntry(i)->count[1] ;
 		  fs << "\n";
 		}
 

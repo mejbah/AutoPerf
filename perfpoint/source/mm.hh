@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+//#include <string>
 #include <sys/mman.h>
 
 //#include "log.hh"
