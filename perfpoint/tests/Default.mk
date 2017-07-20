@@ -1,12 +1,12 @@
 #FIXME: these two lines that need to be changed correspondingly. Another file is 
 # tests/config.mk if you want to change the number of threads or input set (native | large)
 #MYLIB_WITH_DIR = /home/mejbah/lockperf/src/liblockperf.so
-MYLIB_WITH_DIR = /home/mejbah/git_clones/Perf-Anomaly/perfpoint/source/perfpoint.so
-MYLIB_DIR = /home/mejbah/git_clones/Perf-Anomaly/perfpoint/source
+MYLIB_WITH_DIR = /home/mejbah/WorkInProgress/perfpoint/source/perfpoint.so
+MYLIB_DIR = /home/mejbah/WorkInProgress/perfpoint/source
 MYLIB = perfpoint
 CC = gcc 
 CXX = g++ 
-CFLAGS += -g -O #-fno-omit-frame-pointer
+CFLAGS += -g -O2 -fno-omit-frame-pointer
 
 CONFIGS = pthread $(MYLIB)
 #CONFIGS = $(MYLIB)
@@ -26,7 +26,7 @@ eval: $(addprefix eval-, $(CONFIGS))
 
 PTHREAD_CFLAGS = $(CFLAGS)
 PTHREAD_LIBS += $(LIBS) -lpthread $(APP_LIBS)
-LD_FLAGS = -L$(APP_LIB_DIR)
+LD_FLAGS = 
 PTHREAD_OBJS = $(addprefix obj/, $(addsuffix -pthread.o, $(TEST_FILES)))
 
 obj/%-pthread.o: %-pthread.c
@@ -46,7 +46,7 @@ obj/%-pthread.o: %.cpp
 	$(CXX) $(PTHREAD_CFLAGS) -c $< -o $@ -I$(HOME)/include
 
 $(TEST_NAME)-pthread: $(PTHREAD_OBJS)
-	$(CXX) -o $@ $(PTHREAD_OBJS) $(LD_FLAGS)  $(PTHREAD_LIBS)
+	$(CXX) -o $@ $(PTHREAD_OBJS) $(PTHREAD_LIBS) $(APP_LIB_DIR)
 	#$(CXX) $(PTHREAD_CFLAGS) -o $@ $(PTHREAD_OBJS) $(PTHREAD_LIBS)
 
 eval-pthread: $(TEST_NAME)-pthread
@@ -56,14 +56,14 @@ eval-pthread: $(TEST_NAME)-pthread
 
 ############ $(MYLIB) builders ############
 
-MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I/home/mejbah/git_clones/Perf-Anomaly/perfpoint/source  -DPERFPOINT
+MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I /home/mejbah/WorkInProgress/perfpoint/source  -DPERFPOINT
 
-RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /usr/local/lib
+RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /home/mejbah/WorkInProgress/perfpoint/papi/lib
 
-#PAPI_LIB += /home/mejbah/papi/papi-5.5.1/src/libpapi.a
-LD_FLAGS = -L$(MYLIB_DIR) -L/usr/local/lib -L$(APP_LIB_DIR)
+#PAPI_LIB = /home/mejbah/WorkInProgress/perfpoint/papi/lib
+LD_FLAGS = -L$(MYLIB_DIR) -L/home/mejbah/WorkInProgress/perfpoint/papi/lib $(APP_LIB_DIR)
 #MYLIB_LIBS += $(LIBS) $(MYLIB_WITH_DIR) -lpthread -ldl $(PAPI_LIB)
-MYLIB_LIBS += -rdynamic -lperfpoint -lpapi -lpthread -ldl $(PAPI_LIB) $(APP_LIBS) 
+MYLIB_LIBS += -rdynamic -lperfpoint -lpapi -lpthread -ldl $(PAPI_LIB) $(APP_LIBS) $(LIBS) 
 
 MYLIB_OBJS = $(addprefix obj/, $(addsuffix -$(MYLIB).o, $(TEST_FILES)))
 
