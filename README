@@ -1,9 +1,0 @@
-- counter.py : reads the performance counters from 'sniper' outputs and applies machine learning classifiers
-
-- copy counter.py in /home/mejbah/Simulators/sniper-6.1/tools 
-
-- usage example: python counters.py /home/mejbah/Simulators/benchmarks/outputs/streamcluster/train_data_pos /home/mejbah/Simulators/benchmarks/outputs/streamcluster/train_data_neg /home/mejbah/Simulators/benchmarks/outputs/streamcluster/test_data 
-
-- sniper simulation outputs in :  /home/mejbah/Simulators/benchmarks/outputs/
-
-- sniper simulation commands in : /home/mejbah/Simulators/benchmarks/run-test.py #TODO: just a list, no script
