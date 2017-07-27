@@ -18,51 +18,6 @@ class LossHistory(keras.callbacks.Callback):
     self.val_losses.append(logs.get('val_loss'))
 
 
-def autencoderMain():
-  # this is the size of our encoded representations
-  encoding_dim = 32  # 32 floats -> compression of factor 24.5, assuming the input is 784 floats
-  layer = [784, 128, 64]
-  autoencoder = getAutoencoder( 784, encoding_dim, layer )
-  # this is our input placeholder
-  #input_img = Input(shape=(784,))
-  ## "encoded" is the encoded representation of the input
-  #encoded = Dense(encoding_dim, activation='relu')(input_img)
-  ## "decoded" is the lossy reconstruction of the input
-  #decoded = Dense(784, activation='sigmoid')(encoded)
-  #
-  ## this model maps an input to its reconstruction
-  #autoencoder = Model(input_img, decoded)
-  #
-  ## this model maps an input to its encoded representation
-  #encoder = Model(input_img, encoded)
-  ## create a placeholder for an encoded (32-dimensional) input
-  #encoded_input = Input(shape=(encoding_dim,))
-  ## retrieve the last layer of the autoencoder model
-  #decoder_layer = autoencoder.layers[-1]
-  ## create the decoder model
-  #decoder = Model(encoded_input, decoder_layer(encoded_input))
-  
-      
-  (x_train, _), (x_test, _) = mnist.load_data()
-  
-  x_train = x_train.astype('float32') / 255.
-  x_test = x_test.astype('float32') / 255.
-  x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
-  x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
-  print x_train.shape
-  print x_test.shape
-  trained_autoencoder, losses, val_losses = trainAutoencoder(autoencoder, x_train[:21000] )
-  for loss in val_losses:
-    print loss
-
-  final_autoencoder, losses, val_losses = trainAutoencoder(trained_autoencoder, x_train[21000:] )
-  #for loss in losses:
-  #  print loss
-
-  for loss in val_losses:
-    print loss
-  #print len(losses), len(val_losses)
-  #print np.mean(losses), np.mean(val_losses)
 
 def trainAutoencoder( autoencoder, training_data ):
   history = LossHistory()

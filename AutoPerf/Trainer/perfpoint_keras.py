@@ -183,40 +183,6 @@ def detectAnomalyPoints( realData, predictedData, outFile, datasetHeader, thresh
 
  
 
-##plotDataset( trainingDataset, testDataset, testHeaderset, outputDir ,reconstructedData )
-def plotDataset( datasetArray1, datasetArray2,  datasetHeader, outputDir, datasetArray3=None ):
-	
-  count = len(datasetHeader)
-
-  for column in range(count):
-	  columnName = datasetHeader[column]  
-    
-	  fig = plt.figure()
-	  ax = fig.add_subplot(111)
-
-	  x_values = np.arange(datasetArray1.shape[0])
-	  y_values = datasetArray1[:,column] 
-	  
-	  ax.plot(x_values, y_values, 'bo')
-
-	  x_values = np.arange(datasetArray2.shape[0])
-	  y_values = datasetArray2[:,column] 
-	  
-	  ax.plot(x_values, y_values, 'ko')
-
-
-	  if datasetArray3 is not None:
-	    x_values = np.arange(datasetArray3.shape[0])
-	    y_values = datasetArray3[:,column] 
-	  
-	    ax.plot(x_values, y_values, 'rs')
-	    
-	  ax.set_ylabel(columnName)
-	  
-	  fig.savefig( outputDir + '/counter_'+ columnName + '.png')
-	  plt.close(fig)
-
-
 
 def getReconstructionErrorThreshold( model, perfTestDataDir, runs ):
  
@@ -239,6 +205,7 @@ def getReconstructionErrorThreshold( model, perfTestDataDir, runs ):
 
 
   return (np.mean(errors) + np.std(errors))
+
 """
 test runs(executions) in the Datadir
 write outFile
