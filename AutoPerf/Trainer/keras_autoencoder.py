@@ -72,5 +72,5 @@ def getAutoencoder( input_dim, encoder_dim, layer_dims=None ):
   return autoencoder
 
   
-if __name__ == "__main__":
-  autencoderMain()
+#if __name__ == "__main__":
+#  autencoderMain()
