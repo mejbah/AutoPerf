@@ -1,0 +1,18 @@
+1. Early stopping
+ - https://stackoverflow.com/questions/37293642/how-to-tell-keras-stop-training-based-on-loss-value
+ - http://page.mi.fu-berlin.de/prechelt/Biblio/stop_tricks1997.pdf
+
+2. Search configuration : parallel training
+
+
+3. cite:
+  Extracting and composing robust features with denoising autoencoders
+  http://dl.acm.org/citation.cfm?id=1390294
+
+  Greedy Layer-Wise Training of Deep Networks
+  http://dl.acm.org/citation.cfm?id=2976476
+
+  Early Stopping-But When?
+  http://dl.acm.org/citation.cfm?id=668392
+
+  Reducing the dimensionality of data with neural networks.
