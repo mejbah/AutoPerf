@@ -1,7 +1,3 @@
-#FIXME: these two lines that need to be changed correspondingly. Another file is 
-# tests/config.mk if you want to change the number of threads or input set (native | large)
-#MYLIB_WITH_DIR = /home/mejbah/lockperf/src/liblockperf.so
-MYLIB_WITH_DIR = /home/mejbah/WorkInProgress/perfpoint/source/perfpoint.so
 MYLIB_DIR = /home/mejbah/WorkInProgress/perfpoint/source
 MYLIB = perfpoint
 CC = gcc 
@@ -62,7 +58,6 @@ RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /home/mejbah/WorkInProgress/perfpoint
 
 #PAPI_LIB = /home/mejbah/WorkInProgress/perfpoint/papi/lib
 LD_FLAGS = -L$(MYLIB_DIR) -L/home/mejbah/WorkInProgress/perfpoint/papi/lib $(APP_LIB_DIR)
-#MYLIB_LIBS += $(LIBS) $(MYLIB_WITH_DIR) -lpthread -ldl $(PAPI_LIB)
 MYLIB_LIBS += -rdynamic -lperfpoint -lpapi -lpthread -ldl $(PAPI_LIB) $(APP_LIBS) $(LIBS) 
 
 MYLIB_OBJS = $(addprefix obj/, $(addsuffix -$(MYLIB).o, $(TEST_FILES)))
