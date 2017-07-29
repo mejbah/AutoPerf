@@ -21,7 +21,7 @@ import copy
 
 
 """
-returns number of executions profile csv file present in the directory
+Returns number of executions profile csv file present in the directory
 """
 def getNumberOfExecProfile( dirName ):
   profiles = [ file.endswith(".csv") for file in dirName]
@@ -32,7 +32,9 @@ def getExecProfileFileNames( dirName ):
   return len(profiles)
 
 
-
+"""
+Create list of sample with all the counter values from profile data
+"""
 def getPerfDataset( dirName , numberOfCounters ):
   datasetHeader = []
   dataset = []
@@ -80,12 +82,16 @@ def getPerfDataset( dirName , numberOfCounters ):
           ##hack end	
   
   return datasetHeader, dataset
-		
 
+		
+"""
+Convert list to numpy arra
+"""
 def getDatasetArray( dataset ):
   
   dataArray = np.array(dataset, dtype='float32')
   return dataArray
+
 
 def getMSE(old, new):
   squaredError = ((old - new) ** 2)
@@ -111,8 +117,8 @@ def rankAnomalousPoint( sampleErrorsTuple, rankingMap ):
   return rankingMap 
 
 
-"""
-report majority voting result
+
+"""report majority voting result
 in : rankingMap -- key: counter_name, val: vote count for each pos/rank
 out: list of rank for the entire execution anomaly root cause
 """
@@ -206,6 +212,7 @@ def getReconstructionErrorThreshold( model, perfTestDataDir, runs ):
 
   return (np.mean(errors) + np.std(errors))
 
+
 """
 test runs(executions) in the Datadir
 write outFile
@@ -227,6 +234,11 @@ def testAutoencoder( model, perfTestDataDir, runs, outFile, threshold_error ):
     
   return anomalousRunCount
 
+
+"""
+Run trained autoencoder and detect anomalous samples based on 'thresoldLoss' 
+and write output in 'outFile'
+"""
 def runTrainedAutoencoder( model, testDataArray, datasetHeader, thresholdLoss, outFile ):
   
   #print(model.score(testDataArray))
@@ -235,8 +247,6 @@ def runTrainedAutoencoder( model, testDataArray, datasetHeader, thresholdLoss, o
   
   dataLen, anomalyCount, ranking = detectAnomalyPoints(testDataArray, decoded_data, outFile, datasetHeader, thresholdLoss)
 
-  ##debug print
-  #print "----ranking-->" , ranking
   print >>  outFile, ranking
 
   ##debug print end
@@ -281,6 +291,7 @@ def getTrainDataSequence(dataDir, testDir=None, validationDir=None ):
   
   print "Total execution/directory found for training data:" , len(runs)
   return runs	
+
 
 def analyzeVariationInData( dataDir, testDir=None, validationDir=None ):
   
@@ -370,8 +381,10 @@ def testModelAccuracy( model, outFilename, threshold_error, perfTestDataDir, per
   
   print ("Report: ", outFilename)
 
+
+
 """
-aggregate all data and train with all data at once
+Aggregate all data and train with all data at once
 """
   
 def perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder, threshold_final=None , saveTrainedNetwork=False):
@@ -578,8 +591,11 @@ def findBestNetwork(inputLen, numberOfLayers, dataDir, outputDir):
   
 
 if __name__ == "__main__" :
-  
-  if(len(sys.argv) == 1):
+ 
+  if(len(sys.argv)==1):
+    print "Usage: autoperf.py path/to/trainingdata path/to/testdata path/to/output"
+    sys.exit()
+  if(len(sys.argv) == 2):
     print ("Running Unit Test")
     unitTest()
     sys.exit()
@@ -596,7 +612,7 @@ if __name__ == "__main__" :
 
 
   
-  numberOfLayers = 5
+  numberOfLayers = 4
   bestNetwork, trainedAutoencoder, minLoss = findBestNetwork(inputLen, numberOfLayers, perfTrainDataDir, outputDir)
   testModelAccuracy( trainedAutoencoder, outputDir+"/accuracy.out", minLoss, perfTestDataDir, perfTrainDataDir)
 

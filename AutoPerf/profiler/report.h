@@ -85,7 +85,7 @@ public:
   }
 #endif
 	void write_results_header(){
-	  fs << "Mark_id" << ", "<<"NTHREADS" << "," << g_event_list[0] << ", " << xPerf::getInstance().getMonitringEventName();
+	  fs << "Mark_id" << ", "<<"NTHREADS" << "," << "PAPI_TOT_INS" << ", " << xPerf::getInstance().getMonitringEventName();
 	  fs << "\n";
 
 	}

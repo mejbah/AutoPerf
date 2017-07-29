@@ -15,7 +15,7 @@ bool initialized = false;
 __thread thread_t * current = NULL;	
 bool _isMultithreading = false;
 
-#ifdef PERF_EVENT
+#if 0
 char* g_event_list[NUM_EVENTS] =
 {
   "PAPI_TOT_INS", //0
