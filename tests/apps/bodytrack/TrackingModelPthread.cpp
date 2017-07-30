@@ -25,6 +25,7 @@
 #include "threads/WorkerGroup.h"
 #include "threads/TicketDispenser.h"
 #include "threads/Barrier.h"
+#include "perfpoint.h"
 
 
 //Define if functions are to be executed with only a single thread (for debugging)
@@ -129,12 +130,15 @@ inline void GradientMagThresholdPthread(int y, FlexImage8u &src, float threshold
 
 //entry function for worker threads
 void TrackingModelPthread::Exec(threads::thread_cmd_t cmd, threads::thread_rank_t rank) {
+  perfpoint_START(1);
 	int i, ticket;
-
+  //std::cout << FilterArgs.src->Height() << std::endl; // 480
 	if(cmd == workers.THREADS_CMD_FILTERROW) {
 		if(rank == 0) {
-			if(FilterArgs.kernelSize % 2 == 0)		//enforce odd length kernels
+			if(FilterArgs.kernelSize % 2 == 0){ //enforce odd length kernels
+    		perfpoint_END();
 				throw -1;
+      }
 			if(FilterArgs.allocate)
 				FilterArgs.dst->Reallocate(FilterArgs.src->Size());
 			FilterArgs.dst->Set((Im8u)0);
@@ -158,8 +162,10 @@ void TrackingModelPthread::Exec(threads::thread_cmd_t cmd, threads::thread_rank_
 		#endif
 	} else if(cmd == workers.THREADS_CMD_FILTERCOLUMN) {
 		if(rank == 0) {
-			if(FilterArgs.kernelSize % 2 == 0)		//enforce odd length kernels
+			if(FilterArgs.kernelSize % 2 == 0){		//enforce odd length kernels
+    		perfpoint_END();
 				throw -1;
+      }
 			if(FilterArgs.allocate)
 				FilterArgs.dst->Reallocate(FilterArgs.src->Size());
 			FilterArgs.dst->Set((Im8u)0);
@@ -204,9 +210,10 @@ void TrackingModelPthread::Exec(threads::thread_cmd_t cmd, threads::thread_rank_
 		#endif
 	} else {
 		//unknown command
+    perfpoint_END();
 		throw -1;
 	}
-
+  perfpoint_END();
 }
 
 //load and process all images for new observation at a given time(frame)
