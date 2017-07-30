@@ -15,7 +15,7 @@ Autoperf is a tool for automated diagnosis of performance anomalies in multithre
     * Annotate functions: 
       * add header : `#include "perfpoint.h"`
       * mark start : `perfpoint_START(marker_id)`
-      * mark end : `perfpoint_END(marker_id)`
+      * mark end : `perfpoint_END()`
       NOTE: use mark_id as parameter to uniquely identify code region
     * Link profiler library `libperfpoint.so` with candidate "program" or use LD_PRELOAD=/path/to/libperfpoint.so (example: Default.mk in tests dir)
   * Run program :
