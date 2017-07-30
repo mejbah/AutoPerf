@@ -1,4 +1,5 @@
-MYLIB_DIR = /home/mejbah/WorkInProgress/perfpoint/source
+#MYLIB_DIR = /home/mejbah/WorkInProgress/perfpoint/source
+MYLIB_DIR = /home/mejbah/git_repos/Perf-Anomaly/profiler
 MYLIB = perfpoint
 CC = gcc 
 CXX = g++ 
@@ -52,7 +53,8 @@ eval-pthread: $(TEST_NAME)-pthread
 
 ############ $(MYLIB) builders ############
 
-MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I /home/mejbah/WorkInProgress/perfpoint/source  -DPERFPOINT
+#MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I /home/mejbah/WorkInProgress/perfpoint/source  -DPERFPOINT
+MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I$(MYLIB_DIR)  -DPERFPOINT
 
 RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /home/mejbah/WorkInProgress/perfpoint/papi/lib
 

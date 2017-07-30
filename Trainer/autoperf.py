@@ -604,15 +604,11 @@ if __name__ == "__main__" :
   perfTestDataDir=sys.argv[2] 
   outputDir = sys.argv[3]
   mkdir_p(outputDir)
-
-
+  
   ##set network configs
   inputLen = configs.NUMBER_OF_COUNTERS
+  numberOfLayers = configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH
 
-
-
-  
-  numberOfLayers = 4
   bestNetwork, trainedAutoencoder, minLoss = findBestNetwork(inputLen, numberOfLayers, perfTrainDataDir, outputDir)
   testModelAccuracy( trainedAutoencoder, outputDir+"/accuracy.out", minLoss, perfTestDataDir, perfTrainDataDir)
 

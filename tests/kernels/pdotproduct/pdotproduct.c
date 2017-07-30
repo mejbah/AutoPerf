@@ -12,7 +12,9 @@
 #include <stdlib.h>	// for atoi() etc
 #include <time.h>		// for clock_gettime()
 #include <errno.h>	// for perror()
-
+#ifdef PERFPOINT
+#include "perfpoint.h"
+#endif
 #ifndef 	N
 #define 	N		10000000 	// LOGN max = 27 => N=2^27 = 128M ==> x 4 = 512MB/vector for 4 byte types
 #endif					// can say N=(1LL << LOGN)

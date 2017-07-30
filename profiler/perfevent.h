@@ -117,17 +117,16 @@ public:
     //while (fgets(monitoring_event_name, sizeof(monitoring_event_name), fp)) {
     monitoring_event_name = NULL;
     while ((nread = getline(&monitoring_event_name, &len, fp)) != -1) {
-      i++;
       if(i==event_index_in_list){
         printf("Monitoring event name: %s", monitoring_event_name);
         break;
       }
-        
+      i++;
     }
     fclose(fp);
    
     if(i!=event_index_in_list){
-      fprintf(stderr,"PERFPOINT:: wrong input event index\n");
+      fprintf(stderr,"PERFPOINT:: wrong input event index %d\n", event_index_in_list);
       exit(1);
     } 
     //trim new line char
@@ -144,6 +143,7 @@ public:
 	  if( retval != PAPI_OK ){
 	    fprintf( stderr, "ERROR: PAPI_event_name_to_code %s File %s Line %d retval %s\n", 
 				   monitoring_event_name, __FILE__, __LINE__,PAPI_strerror(retval) );
+      exit(1);
 	  }
     
   }
@@ -169,6 +169,7 @@ public:
     if ( retval != PAPI_OK ) {
        fprintf( stderr, "Error : PAPI_create_eventset File %s Line %d retval %d\n",
          __FILE__, __LINE__, retval );
+       exit(1);
     }
 
     if(event_multiplex){
@@ -186,6 +187,7 @@ public:
     if( retval != PAPI_OK ){
       fprintf( stderr, "ERROR: PAPI_event_code_to_name PAPI_TOT_INS in File %s Line %d retval %s\n", 
           __FILE__, __LINE__,PAPI_strerror(retval) );
+      exit(1);
     }
 #ifdef PERFPOINT_DEBUG
     else{
@@ -199,7 +201,7 @@ public:
        __FILE__, __LINE__,	  PAPI_strerror(retval) );
     }
 
-    fprintf( stderr, "Event PAPI_TOT_INS added for thread %d\n", tid );
+    //fprintf( stderr, "Event PAPI_TOT_INS added for thread %d\n", tid );
 
 
     //add monitoring event
@@ -207,9 +209,10 @@ public:
     if( retval != PAPI_OK ){
         fprintf( stderr, "ERROR: PAPI_add_event code %u File %s Line %d retval %s\n", 
           monitoring_event_code, __FILE__, __LINE__,	  PAPI_strerror(retval) );
+        exit(1);
     }
     eventset_initialized = true;
-    fprintf( stderr, "Event code 0x%x added for thread %d\n" ,monitoring_event_code, tid );
+    //fprintf( stderr, "Event code 0x%x added for thread %d\n" ,monitoring_event_code, tid );
   
   }
 
