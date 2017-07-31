@@ -23,7 +23,7 @@ Autoperf is a tool for automated diagnosis of performance anomalies in multithre
     * copy Autoperf/profiler/scripts/run_profiler.py in banary path
     * set `PERFPOINT_LIB_PATH="path/to/libperfpoint"` in `run_profiler.py`
     * `python run_profiler.py PATH/TO/OUTPUT/PROFILE_DATA PROGRAM_BINARY PROGRAM_ARGS [runID]`
-    * NOTE: use optional runID to store multiple executions data in separate directory
+    * NOTE: use optional `runID` to store multiple executions data in separate directories
 * Anomaly Detection:
   * Requirements: Python 2.7+, [keras](https://keras.io/) library
   * `cd AutoPerf/Trainer`
