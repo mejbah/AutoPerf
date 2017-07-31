@@ -4,6 +4,7 @@ from keras.datasets import mnist
 import keras.callbacks
 import numpy as np
 from keras import optimizers
+import configs
 
 """
 help : https://keras.io/callbacks/
@@ -26,8 +27,8 @@ def trainAutoencoder( autoencoder, training_data ):
   noise_factor = 0.1 #0.2
   noisy_training_data = noise_factor * np.random.normal(loc=0.0, scale=1.0, size=training_data.shape)
   autoencoder.fit(noisy_training_data, training_data,
-                  epochs=20, #50,
-                  batch_size=100,
+                  epochs=configs.TRAINING_EPOCHS,  #20, #50,
+                  batch_size=configs.TRAINING_BATCH_SIZE,
                   shuffle=True,
                   validation_split=0.3,
                   #validation_data=(validation_data, validation_data), 

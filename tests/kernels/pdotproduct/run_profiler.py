@@ -23,28 +23,28 @@ def file_len(fname):
 
 
 if len(sys.argv) < 3:
-  print "\nUsage: run_test.py OUTPUT_DIR PROG_BIN PROG_ARGS\n"
+  print "\nUsage: run_test.py OUTPUT_DIR PROG_BIN PROG_ARGS [run id]\n"
   sys.exit() 
 
 
 OUTPUT_DIR=sys.argv[1] 
 PROG_BIN=sys.argv[2]
-
+runId = "run0"
 if len(PROG_BIN)==0:
   print "Error:binary name required"
   sys.exit()
 
 if len(sys.argv) == 4:
   PROG_ARGS = sys.argv[3]
-
+if len(sys.argv) == 5:
+  runId = sys.argv[4]
 
 DEFAULT_OUTFILE_NAME = "perf_data.csv"
 N_EVENTS = file_len(COUNTERS_FILE)
 
 print "Profiling ", N_EVENTS, " events"
 
-
-currOutputDirName = OUTPUT_DIR 
+currOutputDirName = OUTPUT_DIR + '/' + runId
 p = subprocess.Popen(['mkdir', '-p', currOutputDirName]) #stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 p.wait()
 

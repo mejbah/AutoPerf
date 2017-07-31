@@ -39,9 +39,9 @@ def getPerfDataset( dirName , numberOfCounters ):
   datasetHeader = []
   dataset = []
    
-  for i in range(1, numberOfCounters+1+1):
-    if i==2 or i==15 or  i==16  : 
-      continue #TODO: 2 counters are not set in PAPI, temp fix , remove this once problem is resolved
+  for i in range(0, numberOfCounters):
+    #if i==2 or i==15 or  i==16  : 
+    #  continue #TODO: 2 counters are not set in PAPI, temp fix , remove this once problem is resolved
     filename = dirName + "/event_" + str(i) + "_perf_data.csv"
     with open(filename, 'r') as fp:
       for linenumber,line in enumerate(fp):
@@ -58,7 +58,7 @@ def getPerfDataset( dirName , numberOfCounters ):
           #normalizedCounter = ( currCounter / ( instructionCount * threadCount ) )* configs.SCALE_UP_FACTOR
           #normalizedCounter = ( currCounter / ( instructionCount ) )* configs.SCALE_UP_FACTOR
           normalizedCounter =  currCounter #TODO: fix this, changed for zero mean data processing
-          if i==1:
+          if i==0:
             newSample = []
             newSample.append(normalizedCounter)
             dataset.append(newSample)
@@ -247,7 +247,7 @@ def runTrainedAutoencoder( model, testDataArray, datasetHeader, thresholdLoss, o
   
   dataLen, anomalyCount, ranking = detectAnomalyPoints(testDataArray, decoded_data, outFile, datasetHeader, thresholdLoss)
 
-  print >>  outFile, ranking
+  #print >>  outFile, ranking #TODO: report rank in a cleaner way
 
   ##debug print end
 
@@ -592,14 +592,15 @@ def findBestNetwork(inputLen, numberOfLayers, dataDir, outputDir):
 
 if __name__ == "__main__" :
  
-  if(len(sys.argv)==1):
+  if(len(sys.argv) < 4):
     print "Usage: autoperf.py path/to/trainingdata path/to/testdata path/to/output"
     sys.exit()
+  """
   if(len(sys.argv) == 2):
     print ("Running Unit Test")
     unitTest()
     sys.exit()
-
+  """
   perfTrainDataDir=sys.argv[1]
   perfTestDataDir=sys.argv[2] 
   outputDir = sys.argv[3]
