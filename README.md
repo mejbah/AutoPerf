@@ -1,8 +1,8 @@
 # AutoPerf #
 ### What is AutoPerf? ###
 Autoperf is a tool for automated diagnosis of performance anomalies in multithreaded programs. It operates in two phases:
-1. Profiling: Collect hardware performance counters from "annotated" sections of a progam by running it with performance representative inputs.
-2. Anomaly Detection: Create a model of application performance behavior by training an [Autoencoder](http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/) network. Use profiling dataset as training data for input. Then, use the trained model for anomaly detection in future executions of the program.
+1. Profiling: Collects hardware performance counters from "annotated" sections of a program by running it with performance representative inputs.
+2. Anomaly Detection: Creates a model of application performance behavior by training an [Autoencoder](http://ufldl.stanford.edu/tutorial/unsupervised/Autoencoders/) network. It finds out the best performing network by training for input dataset(collected in profiling phase). AutoPerf uses the trained model for anomaly detection in future executions of the program.
 
 
 ### How to run? ###
