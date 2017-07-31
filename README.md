@@ -29,8 +29,8 @@ Autoperf is a tool for automated diagnosis of performance anomalies in multithre
   * set `NUMBER_OF_COUNTERS` and `NO_OF_HIDDEN_LAYER_TO_SEARCH` in `configs.py`
   * `python autoperf.py PATH/TO/PROFILE_DATA_FOR_TRAINING PATH/TO/PROFILE_DATA_FOR_TEST PATH/TO/OUTPUT_DETECTION_RESULTS`
   * Output files:
-      * accuracy.out
-      * networks.out
+      * accuracy.out : Detection results 
+      * network_training.log : Network configs + training error + validation error
 
 
 
