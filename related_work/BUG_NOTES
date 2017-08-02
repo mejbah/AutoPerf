@@ -1,0 +1,5 @@
+1. False sharing: https://bugs.launchpad.net/percona-server/+bug/1125259
+2. Branch misprediction : https://bugs.launchpad.net/percona-server/+bug/1130655
+3. True sharing: http://mikaelronstrom.blogspot.com/2012/10/scalability-improvements-in-mysql-56.html
+4. False sharing: https://bugs.mysql.com/bug.php?id=79454
+

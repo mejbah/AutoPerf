@@ -1,0 +1,8 @@
+problem in 5.5: n_rows_read++ --> leads to cache contention
+
+fixed in 5.6 : use 64 cache alighed --> slots n_rows_read[64] , but select slots = trx->id % 64 -->results in false sharing
+"Suppose your workload does
+a lot of concurrent cached index scans, i.e. increments
+srv_stats.n_rows_read lots of times within a single transaction. If the
+transaction rate is also high, the chance of multiple cores choosing the
+same slot and thus thrashing each other's caches is also high." - MySQL Bug 79454 (https://bugs.mysql.com/bug.php?id=79454)
