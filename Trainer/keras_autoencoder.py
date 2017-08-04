@@ -5,10 +5,15 @@ import keras.callbacks
 import numpy as np
 from keras import optimizers
 import configs
+import math
 
 """
-help : https://keras.io/callbacks/
+help : 
+https://keras.io/callbacks/
+https://keunwoochoi.wordpress.com/2016/07/16/keras-callbacks/
+
 """
+
 class LossHistory(keras.callbacks.Callback):
   def on_train_begin(self, logs={}):
     self.losses = []
@@ -19,6 +24,43 @@ class LossHistory(keras.callbacks.Callback):
     self.val_losses.append(logs.get('val_loss'))
 
 
+class EarlyStoppingByLossVal(keras.callbacks.Callback):
+  def __init__(self, monitor='val_loss', value=0.00001, verbose=0):
+    super(Callback, self).__init__()
+    self.monitor = monitor
+    self.value = value
+    self.verbose = verbose
+  
+  def on_epoch_end(self, epoch, logs={}):
+    current = logs.get(self.monitor)
+    if current is None:
+      warnings.warn("Early stopping requires %s available!" % self.monitor, RuntimeWarning)
+    if current < self.value:
+      if self.verbose > 0:
+        print("Epoch %05d: early stopping THR" % epoch)
+      self.model.stop_training = True
+
+
+class VarianceTermination(keras.callbacks.Callback):
+  def __init_(self, monitor='val_loss', verbose=0, epsilon=0.05, repeatedSuccess=0):
+    self.losses = []
+    self.monitor = monitor
+    self.epsilon = epsilon
+    self.repeatedSuccess = repeatedSuccess
+    self.lastStop = 0
+
+  def on_epoch_end(self, batch, logs={}):
+    self.losses.append(log.get(self.monitor))
+    for i in range(1, v.size()):
+      average_var_piecewise = average_variance(self.losses, i - math.ceil(i/10.0), i);
+      average_var_total = average_variance(v,0,i) / math.ceil(1 + (i/2.0))
+      if average_var_piecewise < average_var_piecewise and self.lastStop >= self.repeatedSuccess and average_var_piecewise < self.epsilon:
+        self.model.stop_training = True
+      elif average_var_piecewise < average_var_total:
+        self.lastStop += 1
+      else:
+        self.lastStop = 0
+    
 
 def trainAutoencoder( autoencoder, training_data ):
   history = LossHistory()
