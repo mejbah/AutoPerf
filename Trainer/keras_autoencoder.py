@@ -66,7 +66,7 @@ def trainAutoencoder( autoencoder, training_data ):
   history = LossHistory()
 
   #TODO: add noise??
-  noise_factor = 0.1 #0.2
+  noise_factor = 1#0.1 #0.2
   noisy_training_data = noise_factor * np.random.normal(loc=0.0, scale=1.0, size=training_data.shape)
   autoencoder.fit(noisy_training_data, training_data,
                   epochs=configs.TRAINING_EPOCHS,  #20, #50,
@@ -85,6 +85,11 @@ def predict( autoencoder, test_data ):
   decoded_data = autoencoder.predict(test_data)
   return decoded_data
 
+
+def getAutoendoerShape( model ):
+  topology = [ x.output_shape[1] for x in model.layers]
+  return topology
+
 """
 tied weights (palindromic) autencoder : input_dim -> layers_dims -> encoder_dim -> reverse(layers_dims) -> input_dim
 """
@@ -92,7 +97,7 @@ def getAutoencoder( input_dim, encoder_dim, layer_dims=None ):
   input_layer = Input(shape=(input_dim,))
   prev = input_layer
   encoded = None
-  if layer_dims != None :
+  if layer_dims != None or len(layer_dims)==0 :
     for curr_dim in layer_dims:
       encoded = Dense( curr_dim, activation = 'sigmoid' )(prev)
       prev = encoded

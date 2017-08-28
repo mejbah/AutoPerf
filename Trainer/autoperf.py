@@ -15,10 +15,13 @@ from utils import *
 from random import shuffle
 import keras_autoencoder
 import copy
+from collections import namedtuple
+
 #from sklearn.metrics import classification_report, confusion_matrix
 #from sklearn.metrics import mean_squared_error
 
-
+AnomalyTuple = namedtuple('AnomalyTuple', 'run, sample_count, anomalous_sample_count, ranking')
+AccuracyTuple = namedtuple('AccuracyTuple', 'true_positive, false_negative, false_positive, true_negative')
 
 """
 Returns number of executions profile csv file present in the directory
@@ -38,11 +41,18 @@ Create list of sample with all the counter values from profile data
 def getPerfDataset( dirName , numberOfCounters ):
   datasetHeader = []
   dataset = []
-   
+  eventID = 0 
   for i in range(0, numberOfCounters):
     #if i==2 or i==15 or  i==16  : 
     #  continue #TODO: 2 counters are not set in PAPI, temp fix , remove this once problem is resolved
-    filename = dirName + "/event_" + str(i) + "_perf_data.csv"
+    
+    filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
+    #while not os.path.isfile(filename):
+    while not os.path.isfile(filename) or eventID==15 or eventID==16: #TODO: only for mysql, remove this for others
+      assert eventID < configs.MAX_COUNTERS
+      eventID += 1
+      filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
+    
     with open(filename, 'r') as fp:
       for linenumber,line in enumerate(fp):
         if linenumber == 2:
@@ -141,7 +151,7 @@ def reportRanks( rankingMap ) :
 """
 calculate reconstruction error : normalized distance 
 """
-def detectAnomalyPoints( realData, predictedData, outFile, datasetHeader, thresholdLoss ):
+def detectAnomalyPoints( realData, predictedData, datasetHeader, thresholdLoss, outFile=None ):
   datasetLen = realData.shape[0]
   dataLen = realData.shape[1]
   anomalyCount = 0
@@ -165,7 +175,6 @@ def detectAnomalyPoints( realData, predictedData, outFile, datasetHeader, thresh
     #if(reconstructionError > configs.THRESHOLD_ERROR):
     if(reconstructionError > thresholdLoss):
       anomalyCount += 1
-      #outputStr = "[" + str(x) + ":" + str(reconstructionError)  + "] " #sample number starting from 0
       errorList = [] #for ranking
       for y in range(0, dataLen):
         dist=abs(predictedData[x][y]-realData[x][y]) / realData[x][y]
@@ -185,7 +194,7 @@ def detectAnomalyPoints( realData, predictedData, outFile, datasetHeader, thresh
   
   votingResult = reportRanks( rankingMap )
   
-  return dataLen, anomalyCount, votingResult
+  return datasetLen, anomalyCount, votingResult
 
  
 
@@ -234,6 +243,22 @@ def testAutoencoder( model, perfTestDataDir, runs, outFile, threshold_error ):
     
   return anomalousRunCount
 
+"""
+return list of tuple(run,total_sample, anomalous_sample, ranking)
+"""
+def testAnomaly( model, testDataDir, runs, threshold_error ):
+  test_summary = []
+  for run in runs:
+    datadir = testDataDir + "/" + run
+    datasetHeader, dataset = getPerfDataset( datadir , configs.NUMBER_OF_COUNTERS )
+    dataArray = getDatasetArray(dataset)
+    dataArray = preprocessDataArray(dataArray)
+    decoded_data = keras_autoencoder.predict( model, dataArray ) 
+    datasetLen, anomalyCount, ranking = detectAnomalyPoints(dataArray, decoded_data, datasetHeader, threshold_error)
+    if anomalyCount > datasetLen * configs.PERCENT_SAMPLE_FOR_ANOMALY : ##TODO: use a thresold, small % of anomaly can me ignored
+      test_summary.append(AnomalyTuple(run = run, sample_count=datasetLen, anomalous_sample_count=anomalyCount, ranking = ranking))
+  return test_summary
+
 
 """
 Run trained autoencoder and detect anomalous samples based on 'thresoldLoss' 
@@ -241,17 +266,8 @@ and write output in 'outFile'
 """
 def runTrainedAutoencoder( model, testDataArray, datasetHeader, thresholdLoss, outFile ):
   
-  #print(model.score(testDataArray))
-  
   decoded_data = keras_autoencoder.predict( model, testDataArray ) 
-  
-  dataLen, anomalyCount, ranking = detectAnomalyPoints(testDataArray, decoded_data, outFile, datasetHeader, thresholdLoss)
-
-  #print >>  outFile, ranking #TODO: report rank in a cleaner way
-
-  ##debug print end
-
-  
+  dataLen, anomalyCount, ranking = detectAnomalyPoints(testDataArray, decoded_data, datasetHeader, thresholdLoss)
   
   return decoded_data, anomalyCount
 
@@ -327,8 +343,30 @@ def analyzeVariationInData( dataDir, testDir=None, validationDir=None ):
 
   sorted_results = sorted(results, key=lambda tup: tup[1], reverse=True)
   return sorted_results, testResults, validationResults
-  
- 
+
+def writeTestLog(logFile, anomalySummary):
+  for tuple in anomalySummary:
+    print >> logFile, tuple.run, tuple.sample_count, tuple.anomalous_sample_count
+    ## AnomalyTuple(run = run, sample_count=dataLen, anomalous_sample_count=anomalyCount, ranking = ranking)
+
+def testModel( model, threshold_error, nonAnomalousDataDir, anomalousDataDir, logFile=None ):
+  print "..Testing Non-anomalous"
+  negative_runs = os.listdir(nonAnomalousDataDir)
+  anomaly_summary = testAnomaly( model, nonAnomalousDataDir, negative_runs, threshold_error )
+  if logFile != None:
+    print >> logFile, "\n..Testing nonAnomalousData..\n"
+    writeTestLog(logFile, anomaly_summary)
+  false_positive = len(anomaly_summary)
+  true_negative = len(negative_runs) - false_positive
+  print "..Testing Anomalous"
+  positive_runs = os.listdir(anomalousDataDir)
+  anomaly_summary = testAnomaly( model, anomalousDataDir, positive_runs, threshold_error )
+  if logFile != None:
+    print >> logFile, "\n..Testing AnomalousData..\n"
+    writeTestLog(logFile, anomaly_summary)
+  true_positive = len(anomaly_summary)
+  false_negative = len(positive_runs) - true_positive 
+  return AccuracyTuple(true_positive=true_positive, false_negative = false_negative, false_positive=false_positive, true_negative=true_negative)
 
 def testModelAccuracy( model, outFilename, threshold_error, perfTestDataDir, perfValidDataDir ):
   
@@ -412,7 +450,7 @@ def perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder, threshold_f
     print "Training dataset size", len(dataset)
   trainingDataset = getDatasetArray(dataset)
   if model == None:
-    model, train_loss, validation_loss  = keras_autoencoder.trainAutoencoder( autoencoder, trainingDataset) 
+    model, train_loss, validation_loss  = keras_autoencoder.trainAutoencoder( autoencoder, trainingDataset ) 
     train_loss_list.extend(train_loss)
     validation_loss_list.extend(validation_loss)
   else:
@@ -513,13 +551,160 @@ def unitTest():
   votingResult = reportRanks( rankingMap )
   print (votingResult)
 
-
 def getRangeOfNode( n ):
-  list_of_numbers = []
-  for i in range( int(n/2), n ):
-    if i>1:
+  list_of_numbers = []  
+  for i in range( int(n/4), int(3*n/4) ):
+    if i> 5: #TODO: limit ???
       list_of_numbers.append(i)
   return list_of_numbers
+
+
+def getReconstructionErrors( perfTestDataDir, model ):
+
+  runs = os.listdir(perfTestDataDir) 
+  reconstructErrorList = []
+  for run in runs:
+    #print ("Reconstruction of execution ", run)
+    datadir = perfTestDataDir + "/" + run
+  
+    datasetHeader, dataset = getPerfDataset( datadir , configs.NUMBER_OF_COUNTERS )
+    dataArray = getDatasetArray(dataset)
+    dataArray = preprocessDataArray(dataArray)
+     
+    datasetLen = dataArray.shape[0]
+    decodedData = keras_autoencoder.predict( model, dataArray )  
+    for x  in range(datasetLen):
+      #reconstructionError = getNormalizedDistance( realData[x], predictedData[x] )
+      reconstructionError = getMSE( dataArray[x], decodedData[x] )
+      #for debugging
+      reconstructErrorList.append(reconstructionError)
+  return reconstructErrorList
+
+
+
+"""
+Aggregate all data and train with all data at once
+@return trained model
+"""
+  
+def aggregateAndTrain( perfTrainDataDir, autoencoder, saveTrainedNetwork=False,outputDir=None ):
+  
+  training_sequence = getTrainDataSequence(perfTrainDataDir)
+  train_loss_list = []
+  reconstruction_error_list = []
+  validation_loss_list = []
+  dataset  = []
+  for train_run in training_sequence:
+    datadir = perfTrainDataDir + "/" + train_run
+    redundantHeader, additionalDatatset = getPerfDataset( datadir , configs.NUMBER_OF_COUNTERS )
+    processed_dataset_array = preprocessDataArray(getDatasetArray(additionalDatatset))
+    dataset.extend(processed_dataset_array.tolist())
+  
+  if len(dataset) < configs.NUMBER_OF_COUNTERS * 2:
+    print "Not enough data for training this iteration" 
+    sys.exit(1)
+  else:
+    print "Training dataset size", len(dataset)
+  trainingDataset = getDatasetArray(dataset)
+  model, train_loss, validation_loss  = keras_autoencoder.trainAutoencoder( autoencoder, trainingDataset ) 
+  train_loss_list.extend(train_loss)
+  validation_loss_list.extend(validation_loss)
+
+  if saveTrainedNetwork == True :
+    model.save(outputDir + "/" + configs.MODEL_SAVED_FILE_NAME + "_"+ str(i))
+
+  return model
+
+"""
+threshold = mean + 3 * std of reconstruction errors
+"""
+def calcThresoldError(reconstructionErrors):
+  meanVal = np.mean(reconstructionErrors)
+  meanVal += ( 3 * np.std(reconstructionErrors))
+  return meanVal
+  
+ 
+def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestDataDir, logFile=None ):
+  model = aggregateAndTrain( trainDataDir, autoencoder )
+
+  print "..Training Complete" 
+  datasetTrainErrors = getReconstructionErrors(trainDataDir, model)
+  threshold_error = calcThresoldError(datasetTrainErrors)
+  print "..Thresold determined"
+  
+  test_result = testModel( model, threshold_error, nonAnomalousTestDir, anomalousTestDataDir, logFile )
+
+  model_string = keras_autoencoder.getAutoendoerShape( model )
+
+  return (model_string, threshold_error, test_result)
+
+"""
+Train and test with given autoencoder network
+Outputs reconstruction errors for train and test dataset
+"""
+def runAutoencoder( inputDim, encodeDim, middleLayers, perfTrainDataDir, perfTestDataDir, outputDir ):
+  mkdir_p(outputDir) 
+  candidate_autoencoder = keras_autoencoder.getAutoencoder(input_dim, encode_dim, hidden_dims)
+  autoencoder = keras_autoencoder.getAutoencoder(inputDim, encodeDim, middleLayers)
+  training_losses, validation_losses = perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder )
+
+  datasetTrainErrors = getReconstructionErrors(perfTrainDataDir,autoencoder)
+  datasetTestErrors = getReconstructionErrors(perfTestDataDir, autoencoder)
+  
+    
+  outFilename = outputDir + "/reconstruction_errors_train.pdf"
+  plotDataList( datasetTrainErrors, outFilename)
+
+  outFilename = outputDir + "/reconstruction_errors_train.out"
+  outFile = open(outFilename, 'w')
+  for val in datasetTrainErrors:
+    print >> outFile, val
+
+  outFile.close()
+   
+  outFilename = outputDir + "/reconstruction_errors_test.pdf"
+  plotDataList( datasetTestErrors, outFilename)
+  outFilename = outputDir + "/reconstruction_errors_test.out"
+  outFile = open(outFilename, 'w')
+  for val in datasetTestErrors:
+    print >> outFile, val
+
+  outFile.close()
+
+
+
+def getTopologies( inputLen, numberOfLayers ):
+  
+  candidate_autoencoders = []
+  prefix = []
+  for layer in range(numberOfLayers):
+    number_of_prefix = 1
+    if layer > 0:
+      number_of_prefix = len(prefix)
+    for prefix_layer in range(number_of_prefix):
+      curr_layer_nodes = 1
+      if layer == 0:
+        curr_layer_nodes = getRangeOfNode(inputLen)
+      else:
+        curr_layer_nodes = getRangeOfNode(prefix[prefix_layer][-1])
+      for n in curr_layer_nodes:
+        new_prefix = []
+        if layer > 0:
+          for nodes in prefix[prefix_layer]:
+            new_prefix.append(nodes)
+
+        
+        #print "curr network: ", inputLen, new_prefix, n
+        autoencoder = keras_autoencoder.getAutoencoder(inputLen, n, new_prefix)
+        candidate_autoencoders.append(autoencoder)
+        new_prefix.append(n) #add new layer nodes
+        prefix.append(new_prefix) #store prefix in this layer
+
+      
+    prefix = prefix[number_of_prefix-1:]
+
+  return candidate_autoencoders
+     
 
 def findBestNetwork(inputLen, numberOfLayers, dataDir, outputDir):
 
@@ -563,7 +748,7 @@ def findBestNetwork(inputLen, numberOfLayers, dataDir, outputDir):
           minLoss = validation_losses[-1]
           bestNetwork = currNetwork
           trainedAutoencoder = autoencoder
-        
+
         newPrefix = copy.deepcopy(prefix)
         newPrefix.append(n) 
         newLayerPrefixes.append(newPrefix)
@@ -588,29 +773,120 @@ def findBestNetwork(inputLen, numberOfLayers, dataDir, outputDir):
 
   return bestNetwork, trainedAutoencoder, minLoss
 
-  
+
+
+"""
+train and test given single autoencoder configuration
+"""
+def iAmFeelingLucky( input_dim, hidden_dims, encode_dim ):
+  trainDataDir=sys.argv[1]
+  nonAnomalousTestDataDir=sys.argv[2] 
+  anomalousTestDataDir=sys.argv[3] 
+  outputDir = sys.argv[4]
+  mkdir_p(outputDir)
+  candidate_autoencoder = keras_autoencoder.getAutoencoder(input_dim, encode_dim, hidden_dims)
+  out_file = open(outputDir + "/autoperf.out", 'a')
+  log_file = open(outputDir + "/autoperf.log", 'a')
+  if os.stat(outputDir + "/autoperf.out").st_size == 0:
+    print >> out_file, "network - error - true_positive - false_negative - true_negative - false_positive"
+  print >> log_file, "Train: ", trainDataDir
+  print >> log_file, "Test(nonAnomalous): ", nonAnomalousTestDataDir
+  print >> log_file, "Test(Anomalous): ", anomalousTestDataDir
+  print "..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoder)
+  print >> log_file, "\n..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoder)
+  output = trainAndTest( candidate_autoencoder, trainDataDir, nonAnomalousTestDataDir, anomalousTestDataDir, log_file )
+  ##output -> (model_string, threshold_error, test_result)
+  print >> out_file, output[0], "-", output[1], "-", output[2].true_positive, "-", output[2].false_negative, "-", output[2].true_negative, "-", output[2].false_positive
+  out_file.close()  
+  log_file.close()
+
+
+def AutoPerfMain():
+  trainDataDir=sys.argv[1]
+  nonAnomalousTestDataDir=sys.argv[2] 
+  anomalousTestDataDir=sys.argv[3] 
+  outputDir = sys.argv[4]
+  mkdir_p(outputDir)
+  candidate_autoencoders = getTopologies( configs.NUMBER_OF_COUNTERS, configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH )
+  print len(candidate_autoencoders)
+
+  out_file = open(outputDir + "/autoperf.out", 'w')
+  log_file = open(outputDir + "/autoperf.log",'w')
+  print >> out_file, "network, error, true_positive, false_negative, true_negative, false_positive"
+  print >> log_file, "Train: ", trainDataDir
+  print >> log_file, "Test(nonAnomalous): ", nonAnomalousTestDataDir
+  print >> log_file, "Test(Anomalous): ", anomalousTestDataDir
+  out_file.close()  
+  log_file.close()
+ 
+  for i in range(len(candidate_autoencoders)): 
+    out_file = open(outputDir + "/autoperf.out", 'a')
+    log_file = open(outputDir + "/autoperf.log", 'a')
+    print "..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoders[i])
+    print >> log_file, "\n..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoders[i])
+    output = trainAndTest( candidate_autoencoders[i], trainDataDir, nonAnomalousTestDataDir, anomalousTestDataDir, log_file )
+    ##output -> (model_string, threshold_error, test_result)
+    print >> out_file, output[0], output[1], output[2].true_positive, output[2].false_negative, output[2].true_negative, output[2].false_positive
+    out_file.close()  
+    log_file.close()
+
+
+  print "..Output to file ", outputDir+"/autoperf.out"
+  print "..Log file ", outputDir+"/autoperf.log"
+
+  #for model in candidate_autoencoders:
+  #  print keras_autoencoder.getAutoendoerShape( model )  
+
+
+
+
+
+
+
+
 
 if __name__ == "__main__" :
  
-  if(len(sys.argv) < 4):
-    print "Usage: autoperf.py path/to/trainingdata path/to/testdata path/to/output"
-    sys.exit()
-  """
-  if(len(sys.argv) == 2):
+    
+  if(len(sys.argv) == 2 and sys.argv[1] == "test"):
     print ("Running Unit Test")
     unitTest()
     sys.exit()
-  """
-  perfTrainDataDir=sys.argv[1]
-  perfTestDataDir=sys.argv[2] 
-  outputDir = sys.argv[3]
-  mkdir_p(outputDir)
+
+  if(len(sys.argv) < 4):
+    print "Usage: autoperf.py path/to/trainingdata path/to/noAnomalousTestData path/to/anomalousTestData path/to/output"
+    sys.exit()
+
+
   
+  #AutoPerfMain()
+
+  #or
+  ## test known best network
+  input_dim = 16
+  #hidden_dims_list = [ [ 22, 16, 12], [ 23, 16, 12], [ 24, 16, 12] ]
+  #hidden_dims_list = [ [ 22, 16], [ 23, 16], [ 24, 16] ]
+  #hidden_dims_list = [ [ 24, 16, 8], [ 25, 16, 8], [ 26, 16, 8] ]
+  #hidden_dims_list = [ [ 28, 24, 10], [24, 20, 16] ]
+  #hidden_dims_list = [ [ 28, 24, 16], [24, 24, 20] ]
+  hidden_dims_list = [ [ 12, 8 ] ]
+  encode_dim = 4
+  #encode_dim = 8
+  #encode_dim = 4
+  for hidden_dims in hidden_dims_list:
+    #iAmFeelingLucky( input_dim, hidden_dims, encode_dim )
+    # for paper figure data collection
+    runAutoencoder( input_dim, encode_dim, hidden_dims, sys.argv[1], sys.argv[2], sys.argv[3] );
+
+  #perfTrainDataDir=sys.argv[1]
+  #perfTestDataDir=sys.argv[2] 
+  #outputDir = sys.argv[3]
+  #mkdir_p(outputDir)
+
   ##set network configs
-  inputLen = configs.NUMBER_OF_COUNTERS
-  numberOfLayers = configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH
+  #inputLen = configs.NUMBER_OF_COUNTERS
+  #numberOfLayers = configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH
 
-  bestNetwork, trainedAutoencoder, minLoss = findBestNetwork(inputLen, numberOfLayers, perfTrainDataDir, outputDir)
-  testModelAccuracy( trainedAutoencoder, outputDir+"/accuracy.out", minLoss, perfTestDataDir, perfTrainDataDir)
-
+  #bestNetwork, trainedAutoencoder, minLoss = findBestNetwork(inputLen, numberOfLayers, perfTrainDataDir, outputDir)
+  #testModelAccuracy( trainedAutoencoder, outputDir+"/accuracy.out", minLoss, perfTestDataDir, perfTrainDataDir)
 

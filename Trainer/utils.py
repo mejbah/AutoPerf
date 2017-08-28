@@ -168,6 +168,7 @@ def compareCounters( dataDir1, dataDir2, counterId, outputDir=None ):
 
 
 if __name__ == "__main__":
+
   #plot to compare counters
   first = sys.argv[1]
   second = sys.argv[2]
