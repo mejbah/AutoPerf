@@ -3,12 +3,14 @@ parallel_vector_sum,1,1.006291786
 parallel_dot_product,1,1.049212054
 parallel_matrix_mult,1,1.037516683
 parallel_matrix_comp,1,1.040129964
+blackscholes,1,1.07
 bodytrack,1,1.028985507
 dedup,1,1.019113573
+streamcluster,1,1.02
 histogram,1,1.032883642
 linear_regression,1,1.05732273
 reverse_index,1,1.09610984
 MySQL,1,1.068121104
 Memcached,1,1.013114754
 Boost,1,1.004479283
-Geo. Mean,1,1.037630202
+Geo. Mean,1,1.038
