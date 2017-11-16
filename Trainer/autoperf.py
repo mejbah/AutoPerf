@@ -48,11 +48,11 @@ def getPerfDataset( dirName , numberOfCounters ):
     
     filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
     #while not os.path.isfile(filename):
-    while not os.path.isfile(filename) or eventID==15 or eventID==16: #TODO: only for mysql, remove this for others
-      assert eventID < configs.MAX_COUNTERS
-      eventID += 1
-      filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
-    
+    #while not os.path.isfile(filename) or eventID==15 or eventID==16: #TODO: only for mysql, remove this for others
+    #  assert eventID < configs.MAX_COUNTERS
+    #  eventID += 1
+    #  filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
+    eventID += 1 
     with open(filename, 'r') as fp:
       for linenumber,line in enumerate(fp):
         if linenumber == 2:
@@ -65,9 +65,9 @@ def getPerfDataset( dirName , numberOfCounters ):
           instructionCount = int(perfCounters[2])
           currCounter = int(perfCounters[3])
         
-          #normalizedCounter = ( currCounter / ( instructionCount * threadCount ) )* configs.SCALE_UP_FACTOR
+          normalizedCounter = ( currCounter / ( instructionCount * threadCount ) )* configs.SCALE_UP_FACTOR
           #normalizedCounter = ( currCounter / ( instructionCount ) )* configs.SCALE_UP_FACTOR
-          normalizedCounter =  currCounter #TODO: fix this, changed for zero mean data processing
+          #normalizedCounter =  currCounter / (instructionCount * threadCount) #TODO: fix this, changed for zero mean data processing
           if i==0:
             newSample = []
             newSample.append(normalizedCounter)
@@ -630,7 +630,9 @@ def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestD
   print "..Training Complete" 
   datasetTrainErrors = getReconstructionErrors(trainDataDir, model)
   threshold_error = calcThresoldError(datasetTrainErrors)
+
   print "..Thresold determined"
+  print >> logFile, "Threshold : ", threshold_error
   
   test_result = testModel( model, threshold_error, nonAnomalousTestDir, anomalousTestDataDir, logFile )
 
@@ -644,7 +646,6 @@ Outputs reconstruction errors for train and test dataset
 """
 def runAutoencoder( inputDim, encodeDim, middleLayers, perfTrainDataDir, perfTestDataDir, outputDir ):
   mkdir_p(outputDir) 
-  candidate_autoencoder = keras_autoencoder.getAutoencoder(input_dim, encode_dim, hidden_dims)
   autoencoder = keras_autoencoder.getAutoencoder(inputDim, encodeDim, middleLayers)
   training_losses, validation_losses = perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder )
 
@@ -670,6 +671,8 @@ def runAutoencoder( inputDim, encodeDim, middleLayers, perfTrainDataDir, perfTes
     print >> outFile, val
 
   outFile.close()
+
+
 
 
 
@@ -800,19 +803,26 @@ def iAmFeelingLucky( input_dim, hidden_dims, encode_dim ):
   out_file.close()  
   log_file.close()
 
-
-def AutoPerfMain():
+"""
+train and test provided list of candidate_autoencoders 
+or serach all possible networks in range of NUMBER_OF_HIDDEN_LAYER_TO_SEARCH
+"""
+def AutoPerfMain(candidate_autoencoders=None):
   trainDataDir=sys.argv[1]
   nonAnomalousTestDataDir=sys.argv[2] 
   anomalousTestDataDir=sys.argv[3] 
   outputDir = sys.argv[4]
   mkdir_p(outputDir)
-  candidate_autoencoders = getTopologies( configs.NUMBER_OF_COUNTERS, configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH )
-  print len(candidate_autoencoders)
+
+  if candidate_autoencoders == None :
+    candidate_autoencoders = getTopologies( configs.NUMBER_OF_COUNTERS, configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH )
 
   out_file = open(outputDir + "/autoperf.out", 'w')
   log_file = open(outputDir + "/autoperf.log",'w')
+  print >> log_file, "Number of autoencoder topologies:",  len(candidate_autoencoders)
+  
   print >> out_file, "network, error, true_positive, false_negative, true_negative, false_positive"
+  
   print >> log_file, "Train: ", trainDataDir
   print >> log_file, "Test(nonAnomalous): ", nonAnomalousTestDataDir
   print >> log_file, "Test(Anomalous): ", anomalousTestDataDir
@@ -857,36 +867,17 @@ if __name__ == "__main__" :
     print "Usage: autoperf.py path/to/trainingdata path/to/noAnomalousTestData path/to/anomalousTestData path/to/output"
     sys.exit()
 
+  input_dim = configs.NUMBER_OF_COUNTERS
+  #hidden_dims = [[ 16, 8 ], [16], [8], [16,8,4]]
+  #encoding_dims = [4, 8, 4, 2]
+  hidden_dims = [[ 16 ]]
+  encoding_dims = [8]
 
-  
+
+  candidate_autoencoders = []
+  for hidden_dim, encoding_dim in zip(hidden_dims, encoding_dims):
+    autoencoder = keras_autoencoder.getAutoencoder(input_dim,  encoding_dim, hidden_dim)
+    candidate_autoencoders.append(autoencoder) 
+  AutoPerfMain(candidate_autoencoders)
   #AutoPerfMain()
-
-  #or
-  ## test known best network
-  input_dim = 16
-  #hidden_dims_list = [ [ 22, 16, 12], [ 23, 16, 12], [ 24, 16, 12] ]
-  #hidden_dims_list = [ [ 22, 16], [ 23, 16], [ 24, 16] ]
-  #hidden_dims_list = [ [ 24, 16, 8], [ 25, 16, 8], [ 26, 16, 8] ]
-  #hidden_dims_list = [ [ 28, 24, 10], [24, 20, 16] ]
-  #hidden_dims_list = [ [ 28, 24, 16], [24, 24, 20] ]
-  hidden_dims_list = [ [ 12, 8 ] ]
-  encode_dim = 4
-  #encode_dim = 8
-  #encode_dim = 4
-  for hidden_dims in hidden_dims_list:
-    #iAmFeelingLucky( input_dim, hidden_dims, encode_dim )
-    # for paper figure data collection
-    runAutoencoder( input_dim, encode_dim, hidden_dims, sys.argv[1], sys.argv[2], sys.argv[3] );
-
-  #perfTrainDataDir=sys.argv[1]
-  #perfTestDataDir=sys.argv[2] 
-  #outputDir = sys.argv[3]
-  #mkdir_p(outputDir)
-
-  ##set network configs
-  #inputLen = configs.NUMBER_OF_COUNTERS
-  #numberOfLayers = configs.NUMBER_OF_HIDDEN_LAYER_TO_SEARCH
-
-  #bestNetwork, trainedAutoencoder, minLoss = findBestNetwork(inputLen, numberOfLayers, perfTrainDataDir, outputDir)
-  #testModelAccuracy( trainedAutoencoder, outputDir+"/accuracy.out", minLoss, perfTestDataDir, perfTrainDataDir)
 
