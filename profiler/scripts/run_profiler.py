@@ -57,9 +57,11 @@ print PROG_BIN, PROG_ARGS
 for i in range(0,N_EVENTS):
   os.environ["PERFPOINT_EVENT_INDEX"] = str(i)
   start_time = os.times()[4]
-  
-  #p = subprocess.Popen([ PROG_BIN , PROG_ARGS ])#stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  p = subprocess.Popen([ PROG_BIN , PROG_ARGS ])#stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  if not PROG_ARGS:
+    p = subprocess.Popen([ PROG_BIN ])#stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  else:
+    PROG_ARGS_LIST = PROG_ARGS.split()
+    p = subprocess.Popen([ PROG_BIN ] + PROG_ARGS_LIST )#stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   p.wait()
   time = os.times()[4] - start_time
   
