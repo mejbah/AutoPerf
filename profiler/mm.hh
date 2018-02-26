@@ -1,5 +1,3 @@
-#if !defined(DOUBLETAKE_MM_H)
-#define DOUBLETAKE_MM_H
 
 #include <errno.h>
 #include <stddef.h>
