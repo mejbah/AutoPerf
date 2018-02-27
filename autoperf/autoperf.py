@@ -27,11 +27,12 @@ import keras_autoencoder
 import copy
 from collections import namedtuple
 
-#from sklearn.metrics import classification_report, confusion_matrix
-#from sklearn.metrics import mean_squared_error
+
 
 AnomalyTuple = namedtuple('AnomalyTuple', 'run, sample_count, anomalous_sample_count, ranking')
 AccuracyTuple = namedtuple('AccuracyTuple', 'true_positive, false_negative, false_positive, true_negative')
+
+
 
 """
 Returns number of executions profile csv file present in the directory
@@ -57,11 +58,6 @@ def getPerfDataset( dirName , numberOfCounters ):
     #  continue #TODO: 2 counters are not set in PAPI, temp fix , remove this once problem is resolved
     
     filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
-    #while not os.path.isfile(filename):
-    #while not os.path.isfile(filename) or eventID==15 or eventID==16: #TODO: only for mysql, remove this for others
-    #  assert eventID < configs.MAX_COUNTERS
-    #  eventID += 1
-    #  filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
     eventID += 1 
     with open(filename, 'r') as fp:
       for linenumber,line in enumerate(fp):
@@ -76,30 +72,11 @@ def getPerfDataset( dirName , numberOfCounters ):
           currCounter = int(perfCounters[3])
         
           normalizedCounter = ( currCounter / ( instructionCount * threadCount ) )* configs.SCALE_UP_FACTOR
-          #normalizedCounter = ( currCounter / ( instructionCount ) )* configs.SCALE_UP_FACTOR
-          #normalizedCounter =  currCounter / (instructionCount * threadCount) #TODO: fix this, changed for zero mean data processing
           if i==0:
             newSample = []
             newSample.append(normalizedCounter)
             dataset.append(newSample)
-          else:
-            #print ":::DEBUG::: ", len(dataset), i, linenumber
-            ##TODO: remove the following hack: added for mysql as files in different counternumber has different total sample
-            ## hack begin: find the minimum sample in an execution and match that with others
-            if len(dataset) < linenumber-2:
-              break; # this hack will create dataset element with smaller vecotors we have to ignore them later
-            ## hack end
             dataset[linenumber-3].append(normalizedCounter)
-  ##TODO: remove the following hack: added for mysql as files in different counternumber has different total sample
-  ## hack begin: remove the smaller dataset vectors
-  count = 0
-  for datavector in dataset:
-    if len(datavector) ==  len(dataset[0]):
-      count += 1
-    else:
-      break
-  dataset = dataset[:count]
-          ##hack end	
   
   return datasetHeader, dataset
 
@@ -168,8 +145,8 @@ def detectAnomalyPoints( realData, predictedData, datasetHeader, thresholdLoss, 
 
 
   ############################################################################################
-  #map for ranking : key = counter name, val = list of len(NUMBER_OF_COUNTERS) 
-  #											  each pos corresponds to rank, smaller is better
+  #map for ranking : 
+  #key = counter name, val = list of len(NUMBER_OF_COUNTERS) 				     #each pos corresponds to rank, smaller is better
   #############################################################################################
   rankingMap = {}
   for counterName in datasetHeader:
@@ -190,18 +167,9 @@ def detectAnomalyPoints( realData, predictedData, datasetHeader, thresholdLoss, 
         dist=abs(predictedData[x][y]-realData[x][y]) / realData[x][y]
         #collect errors and counter tuple
         errorList.append( (datasetHeader[y], dist) )
-      #if dist > thresholdLoss:
-      #  outputStr += datasetHeader[y]
-      #  outputStr += ":"
-      #  outputStr += str(dist)
-      #  outputStr += " "
-      #outFile.write(outputStr)
-      #outFile.write("\n")
       #update ranking
       rankingMap = rankAnomalousPoint(errorList, rankingMap)
 
-#	plotDataList(reconstructErrorList, "true_errors.png", "reconstruction error")
-  
   votingResult = reportRanks( rankingMap )
   
   return datasetLen, anomalyCount, votingResult
@@ -252,6 +220,7 @@ def testAutoencoder( model, perfTestDataDir, runs, outFile, threshold_error ):
 	    anomalousRunCount += 1
     
   return anomalousRunCount
+
 
 """
 return list of tuple(run,total_sample, anomalous_sample, ranking)
@@ -353,6 +322,8 @@ def analyzeVariationInData( dataDir, testDir=None, validationDir=None ):
 
   sorted_results = sorted(results, key=lambda tup: tup[1], reverse=True)
   return sorted_results, testResults, validationResults
+
+
 
 def writeTestLog(logFile, anomalySummary):
   for tuple in anomalySummary:
@@ -470,14 +441,6 @@ def perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder, threshold_f
   if saveTrainedNetwork == True :
     model.save(outputDir + "/" + configs.MODEL_SAVED_FILE_NAME + "_"+ str(i))
 
-  ##instead of calculating reconstruction error, used validation loss
-  """
-  if threshold_final !=None:
-    testModelAccuracy( model, outputDir+"/report.accuracy_"+ str(i), threshold_final )
-  else:
-    reconstruction_error_list.append(getReconstructionErrorThreshold( model, perfTrainDataDir, training_sequence )) 
-  return train_loss_list, reconstruction_error_list
-  """
   return train_loss_list, validation_loss_list
 
 """
@@ -506,7 +469,6 @@ def perfAnalyzerMainTrainSequence( perfTrainDataDir, outputDir, autoencoder, thr
     datasetHeader, dataset = getPerfDataset( datadir , configs.NUMBER_OF_COUNTERS )
 
 
-    #while len(dataset)  < configs.NUMBER_OF_COUNTERS * 2: ##TODO:change should be reversed
     while i < len(training_sequence):
       print ("small input, adding more data for the batch")
       if(i+1 == len(training_sequence)):
@@ -534,32 +496,9 @@ def perfAnalyzerMainTrainSequence( perfTrainDataDir, outputDir, autoencoder, thr
   if saveTrainedNetwork == True :
     model.save(outputDir + "/" + configs.MODEL_SAVED_FILE_NAME + "_"+ str(i))
 
-  ##instead of calculating reconstruction error, used validation loss
-  """
-  if threshold_final !=None:
-    testModelAccuracy( model, outputDir+"/report.accuracy_"+ str(i), threshold_final )
-  else:
-    reconstruction_error_list.append(getReconstructionErrorThreshold( model, perfTrainDataDir, training_sequence )) 
-  return train_loss_list, reconstruction_error_list
-  """
   return train_loss_list, validation_loss_list
 
-    
-  
 
-
-def unitTest():
-  sampleErrorsTuple = [("y",1), ("x",4)]
-  rankingMap = {}
-  rankingMap["x"] = [0] * 2
-  rankingMap["y"] = [0] * 2
-  for i in range(10):
-    rankingMap = rankAnomalousPoint( sampleErrorsTuple, rankingMap )
-  print (rankingMap)
-
-  
-  votingResult = reportRanks( rankingMap )
-  print (votingResult)
 
 def getRangeOfNode( n ):
   list_of_numbers = []  
@@ -865,13 +804,7 @@ def AutoPerfMain(candidate_autoencoders=None):
 
 
 
-if __name__ == "__main__" :
- 
-    
-  if(len(sys.argv) == 2 and sys.argv[1] == "test"):
-    print ("Running Unit Test")
-    unitTest()
-    sys.exit()
+if __name__ == "__main__" :  
 
   if(len(sys.argv) < 4):
     print "Usage: autoperf.py path/to/trainingdata path/to/noAnomalousTestData path/to/anomalousTestData path/to/output"
