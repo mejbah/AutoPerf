@@ -1,7 +1,7 @@
 # AutoPerf #
 ### What is AutoPerf? ###
 Autoperf is a tool for automated diagnosis of performance anomalies in multithreaded programs. It operates in two phases:
-1. Profiling: Collects hardware performance counters from "annotated" sections of a program by running it with performance representative inputs.
+1. Profiling: Collects hardware performance counters from annotated sections of a program by running it with performance representative inputs.
 2. Anomaly Detection: Creates a model of application performance behavior by training an [Autoencoder](http://dl.acm.org/citation.cfm?id=1390294) network. It finds out the best performing network by training for input dataset(collected in profiling phase). AutoPerf uses the trained model for anomaly detection in future executions of the program.
 * More details can be found in our arxiv paper: ["AutoPerf: A Generalized Zero-Positive Learning System to Detect Software Performance Anomalies"](https://arxiv.org/pdf/1709.07536.pdf)
 
@@ -11,7 +11,7 @@ Autoperf is a tool for automated diagnosis of performance anomalies in multithre
   * Build profiler library:
     * cd AutoPerf/proflier 
     * make
-  * Prepare candidate "program":
+  * Prepare candidate program:
     * Annotate functions: 
       * add header : `#include "perfpoint.h"`
       * mark start : `perfpoint_START(marker_id)`
