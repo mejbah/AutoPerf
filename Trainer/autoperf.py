@@ -16,6 +16,8 @@ from random import shuffle
 import keras_autoencoder
 import copy
 from collections import namedtuple
+from random import sample
+from sklearn import datasets, neighbors, linear_model, metrics
 
 #from sklearn.metrics import classification_report, confusion_matrix
 #from sklearn.metrics import mean_squared_error
@@ -41,18 +43,20 @@ Create list of sample with all the counter values from profile data
 def getPerfDataset( dirName , numberOfCounters ):
   datasetHeader = []
   dataset = []
-  eventID = 0 
-  for i in range(0, numberOfCounters):
+  eventID = 0  #TODO: make it 0 starting to avoid future bugs
+  for i in range(numberOfCounters):
     #if i==2 or i==15 or  i==16  : 
     #  continue #TODO: 2 counters are not set in PAPI, temp fix , remove this once problem is resolved
-    
+     
+    eventID = i 
     filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
-    #while not os.path.isfile(filename):
+    #print filename
+    if not os.path.isfile(filename):
+      continue
     #while not os.path.isfile(filename) or eventID==15 or eventID==16: #TODO: only for mysql, remove this for others
     #  assert eventID < configs.MAX_COUNTERS
     #  eventID += 1
     #  filename = dirName + "/event_" + str(eventID) + "_perf_data.csv"
-    eventID += 1 
     with open(filename, 'r') as fp:
       for linenumber,line in enumerate(fp):
         if linenumber == 2:
@@ -606,6 +610,7 @@ def aggregateAndTrain( perfTrainDataDir, autoencoder, saveTrainedNetwork=False,o
   else:
     print "Training dataset size", len(dataset)
   trainingDataset = getDatasetArray(dataset)
+  print "Training data shape", trainingDataset.shape
   model, train_loss, validation_loss  = keras_autoencoder.trainAutoencoder( autoencoder, trainingDataset ) 
   train_loss_list.extend(train_loss)
   validation_loss_list.extend(validation_loss)
@@ -624,10 +629,13 @@ def calcThresoldError(reconstructionErrors):
   return meanVal
   
  
-def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestDataDir, logFile=None ):
+def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestDataDir, outputDir, logFile=None ):
   model = aggregateAndTrain( trainDataDir, autoencoder )
 
   print "..Training Complete" 
+    
+  model_string = keras_autoencoder.getAutoendoerShape( model )
+  #keras_autoencoder.save_model (model, "save_test") 
   datasetTrainErrors = getReconstructionErrors(trainDataDir, model)
   threshold_error = calcThresoldError(datasetTrainErrors)
 
@@ -636,7 +644,6 @@ def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestD
   
   test_result = testModel( model, threshold_error, nonAnomalousTestDir, anomalousTestDataDir, logFile )
 
-  model_string = keras_autoencoder.getAutoendoerShape( model )
 
   return (model_string, threshold_error, test_result)
 
@@ -797,7 +804,7 @@ def iAmFeelingLucky( input_dim, hidden_dims, encode_dim ):
   print >> log_file, "Test(Anomalous): ", anomalousTestDataDir
   print "..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoder)
   print >> log_file, "\n..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoder)
-  output = trainAndTest( candidate_autoencoder, trainDataDir, nonAnomalousTestDataDir, anomalousTestDataDir, log_file )
+  output = trainAndTest( candidate_autoencoder, trainDataDir, nonAnomalousTestDataDir, anomalousTestDataDir, outputDir, log_file )
   ##output -> (model_string, threshold_error, test_result)
   print >> out_file, output[0], "-", output[1], "-", output[2].true_positive, "-", output[2].false_negative, "-", output[2].true_negative, "-", output[2].false_positive
   out_file.close()  
@@ -834,7 +841,7 @@ def AutoPerfMain(candidate_autoencoders=None):
     log_file = open(outputDir + "/autoperf.log", 'a')
     print "..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoders[i])
     print >> log_file, "\n..Autoencder topology: ", keras_autoencoder.getAutoendoerShape(candidate_autoencoders[i])
-    output = trainAndTest( candidate_autoencoders[i], trainDataDir, nonAnomalousTestDataDir, anomalousTestDataDir, log_file )
+    output = trainAndTest( candidate_autoencoders[i], trainDataDir, nonAnomalousTestDataDir, anomalousTestDataDir, outputDir, log_file )
     ##output -> (model_string, threshold_error, test_result)
     print >> out_file, output[0], output[1], output[2].true_positive, output[2].false_negative, output[2].true_negative, output[2].false_positive
     out_file.close()  
@@ -849,11 +856,89 @@ def AutoPerfMain(candidate_autoencoders=None):
 
 
 
+## @return : 2D list -> [run][profile_data_in_that_run]
+def AggregateRunProfiles( datadir ):
+  runs = os.listdir(datadir) 
+  run_profiles = []
+  for dirname in runs:
+    profile_datadir = datadir + "/" + dirname
+    _ , curr_profile = getPerfDataset( profile_datadir , configs.NUMBER_OF_COUNTERS )
+    run_profiles.append(curr_profile)
+  return run_profiles
+
+def F1Score( tp, fn, tn, fp ):
+  precision = tp / ( tp + fp )
+  recall = tp / ( tp + fn )
+  f1 = 2 * (precision * recall) / (precision + recall)
+  return f1
+
+def LogisticRegressionModeling( normal_datadir, anomalous_datadir ):
+
+  normal_run_profiles =  AggregateRunProfiles( normal_datadir )
+  anomalous_run_profiles = AggregateRunProfiles( anomalous_datadir )
+
+  number_of_normal_run_for_train = 1
+  number_of_anomalous_run_for_train = 1
+
+  assert len(normal_run_profiles) > number_of_normal_run_for_train
+  assert len(anomalous_run_profiles) > number_of_anomalous_run_for_train 
+
+  ##prepare training data & select test runs
+  test_run_normal = []
+  test_run_anomalous = []
+
+  training_data_X = []
+  training_data_y = []
+
+  randomized_normal_run_ids = sample(range(len(normal_run_profiles)), number_of_normal_run_for_train)
+  randomized_anomalous_run_ids = sample(range(len(anomalous_run_profiles)), number_of_anomalous_run_for_train)
+  for id in randomized_normal_run_ids:
+    for _sample in normal_run_profiles[id]:
+      training_data_X.append(_sample)
+      training_data_y.append(0)
+  normal_sample_count = len(training_data_X)      
+  print("Normal runs : %d, with a total of %d samples" % (number_of_normal_run_for_train, normal_sample_count))
+
+  for id in randomized_anomalous_run_ids:
+    for _sample in anomalous_run_profiles[id]:
+      training_data_X.append(_sample)
+      training_data_y.append(1) 
+  print("Anomalous runs : %d, with a total of %d samples" % (number_of_anomalous_run_for_train, len(training_data_X) - normal_sample_count))
+
+  #train a model
+  model = linear_model.LogisticRegression(class_weight='balanced')
+  trained_model= model.fit( training_data_X, training_data_y )
+  
+  #prediction
+  actual_negative = 0
+  true_negative = 0
+  false_positive = 0
+  
+  actual_positive = 0
+  true_positive = 0
+  false_negative = 0
+  for id in range(len(normal_run_profiles)):
+    if id not in randomized_normal_run_ids:
+      actual_negative += 1
+      y_pred = trained_model.predict(normal_run_profiles[id])
+      if sum(y_pred) > 0:
+        false_positive += 1
+      else:
+        true_negative += 1 
+     
+
+  for id in range(len(anomalous_run_profiles)):
+    if id not in randomized_anomalous_run_ids:
+      actual_positive += 1
+      y_pred = trained_model.predict(anomalous_run_profiles[id])
+      if sum(y_pred) > 0:
+        true_positive += 1
+      else:
+        false_negative += 1
 
 
-
-
-
+  print( "TP %d\t FN %d\t TN %d\t FP %d\t" % ( true_positive, false_negative, true_negative, false_positive))
+  print( "F1 score : %f" % F1Score(true_positive, false_negative, true_negative, false_positive))
 
 if __name__ == "__main__" :
  
@@ -867,10 +952,13 @@ if __name__ == "__main__" :
     print "Usage: autoperf.py path/to/trainingdata path/to/noAnomalousTestData path/to/anomalousTestData path/to/output"
     sys.exit()
 
+
+  ## test accuracy of logistic regression
+  #LogisticRegressionModeling(sys.argv[1], sys.argv[2])
+
   input_dim = configs.NUMBER_OF_COUNTERS
   #hidden_dims = [[ 16, 8 ], [16], [8], [16,8,4]]
-  #encoding_dims = [4, 8, 4, 2]
-  hidden_dims = [[ 16 ]]
+  hidden_dims = [ [16] ]
   encoding_dims = [8]
 
 
@@ -879,5 +967,5 @@ if __name__ == "__main__" :
     autoencoder = keras_autoencoder.getAutoencoder(input_dim,  encoding_dim, hidden_dim)
     candidate_autoencoders.append(autoencoder) 
   AutoPerfMain(candidate_autoencoders)
-  #AutoPerfMain()
+  ##AutoPerfMain()
 

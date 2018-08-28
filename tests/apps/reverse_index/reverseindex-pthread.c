@@ -44,7 +44,7 @@
 #define START_ARRAY_SIZE 2000
 
 #ifdef NO_FALSE_SHARING
-#define OFFSET 32
+#define OFFSET 128
 #endif
 
 enum {

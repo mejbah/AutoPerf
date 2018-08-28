@@ -6,7 +6,7 @@ import numpy as np
 from keras import optimizers
 import configs
 import math
-
+from keras.models import model_from_yaml
 """
 help : 
 https://keras.io/callbacks/
@@ -118,6 +118,27 @@ def getAutoencoder( input_dim, encoder_dim, layer_dims=None ):
   optimizer_var = optimizers.SGD(lr=0.01)
   autoencoder.compile(optimizer=optimizer_var, loss='mean_squared_error')
   return autoencoder
+
+"""
+save models
+"""
+def save_model(model, model_name, save_dir=None):
+    # serialize model to YAML
+    model_yaml = model.to_yaml()
+    model_file = model_name + ".model"
+    model_weights_file = model_name + ".weights"
+
+    if save_dir != None:
+      model_file = save_dir + "/" + model_file
+      model_weights_file = save_dir + "/" + model_weights_file
+    with open(model_file, "w") as yaml_file:
+            yaml_file.write(model_yaml)
+            # serialize weights to HDF5
+            model.save_weights(model_weights_file)
+            print("Saved model to disk: ", model_file)
+ 
+
+
 
   
 #if __name__ == "__main__":

@@ -43,29 +43,27 @@ public:
       perror ("installing SIGINT failed\n");
       exit (-1);
 		}
-#ifdef USING_SIGUSR2
+//#ifdef USING_SIGUSR2
     if (sigaction(SIGUSR2, &siga, NULL) == -1) {
       perror ("installing SIGUSR2 failed\n");
       exit (-1);
 		}
-#endif
+//#endif
 	}
 
 	static void sigHandler(int signum) {
     if(signum == SIGINT) {
-			fprintf(stderr, "Recieved SIGINT, Genearting Report\n");
-			xthread::getInstance().finalize();
+			fprintf(stderr, "Recieved SIGINT, Exit program\n");
       exit(0);
     }
     else if (signum == SIGUSR2) {
-      fprintf(stderr, "Recieving SIGUSR2, check false sharing now:\n");
-      //xmemory::getInstance().reportFalseSharing();
-	  //xthread::getInstance().finalize();
+      fprintf(stderr, "Recieved SIGUSR2, Genearting Report\n");
+			xthread::getInstance().finalize();
+      //exit(0);
+
     }
   }
 
-  /// The memory manager (for both heap and globals).
-  //  xmemory&     _memory;
 };
 
 

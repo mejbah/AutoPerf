@@ -20,7 +20,7 @@ OUTPUT_DIR=sys.argv[3]
 
 DEFAULT_OUTFILE_NAME = "perf_data.csv"
 EVENT_NUM = 38
-NThread = [2,3,4,5,6,7,8,9,10,11,12]
+#NThread = [2,3,4,5,6,7,8,9,10,11,12]
 #NThread = [8,9,10,11,12]
 NArray = [1000000, 2000000, 5000000, 10000000, 20000000, 50000000, 100000000]
 
@@ -55,7 +55,7 @@ for n in NArray:
  
     TEST_ARGS = str(thread)
     
-    for i in range(1, EVENT_NUM):
+    for i in range(EVENT_NUM):
       os.environ["PERFPOINT_EVENT_INDEX"] = str(i)
       start_time = os.times()[4]
       p = subprocess.Popen(['make', 'eval-perfpoint', 'TEST_ARGS='+TEST_ARGS]) #stdout=subprocess.PIPE, stderr=subprocess.PIPE)

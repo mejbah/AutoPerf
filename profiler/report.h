@@ -92,7 +92,7 @@ public:
 	void write_results( RecordEntries<perf_record_t>&records, int total_threads){
 
 	  int total_records = records.getEntriesNumb();
-	  //fprintf(stderr, "\n\nPERFPOINT :: Number of records %d\n", total_records); 
+	  fprintf(stderr, "\n\nPERFPOINT :: Number of records %d\n", total_records); 
 		for(int i=0; i<total_records; i++) {
 		  fs << records.getEntry(i)->mark;
 		  fs << ", " << total_threads;

@@ -124,6 +124,7 @@
 	void finalize(void) {
 	  // Stop the last 
 	  int total_threads = xthread::getInstance().getMaxThreadIndex();
+    printf("Number of threads recorded %d\n", total_threads);
 	  stopThreadLevelInfo();	  
 	  Report::getInstance().reportOpen();
 	  Report::getInstance().write_results_header();
@@ -349,7 +350,7 @@
 					continue;
 				}
 				else {
-					printf("Can't find the thread_t structure with specifid thread\n");
+					printf("Can't find the thread_t structure with specifid thread %d, %d\n", index, current->childEndIndex);
 					abort();
 				}
 			}	

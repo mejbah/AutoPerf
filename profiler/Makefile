@@ -1,13 +1,13 @@
 CC = gcc
 CFLAGS= -g -O2 -fno-omit-frame-pointer -I.  -fPIC 
 LD = $(CC)
-LDFLAGS = -L /home/mejbah/WorkInProgress/perfpoint/papi/lib -Wl,-rpath /home/mejbah/WorkInProgress/perfpoint/papi/lib -lpapi -lpthread 
+LDFLAGS = -L /home/mejbah/projects/AutoPerf/papi/lib -Wl,-rpath /home/mejbah/projects/AutoPerf/papi/lib -lpapi -lpthread 
 #LDFLAGS = -L /usr/local/lib -Wl,-rpath /usr/local/lib -lpapi -lpthread 
 
 
 
 
-CFLAGS += -DPERF_EVENT -I/home/mejbah/WorkInProgress/perfpoint/papi/include #-DPERFPOINT_DEBUG
+CFLAGS += -DPERF_EVENT -I/home/mejbah/projects/AutoPerf/papi/include #-DPERFPOINT_DEBUG
 #CFLAGS += -DPERFPOINT_EVENT_SET_1 
 #CFLAGS += -DPERFPOINT_EVENT_SET_2
 TARGET = libperfpoint.so 

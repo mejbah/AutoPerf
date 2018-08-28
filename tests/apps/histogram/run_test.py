@@ -20,11 +20,14 @@ if sys.argv[2]  == "GOOD":
 OUTPUT_DIR=sys.argv[3] 
 
 
-INPUT_DIR="../../../input_datasets/histogram/"
+#INPUT_DIR="../../../input_datasets/histogram/"
+INPUT_DIR="/home/mejbah/datasets/histogram/"
 DEFAULT_OUTFILE_NAME = "perf_data.csv"
-EVENT_NUM = 16 #38
-NThread = [2,3,4,5,6,7,8,9,10,11,12]
-INFILE = ["large.bmp", "med.bmp"]
+EVENT_NUM = 40
+NThread = [8,10,12]
+#NThread = [4,12]
+#INFILE = ["large.bmp", "med.bmp"]
+INFILE = ["large.bmp"]
 
 #EVENT_NUM = 2
 #NThread = [2] #3,4,5,6,7,8,9,10,11,12]
@@ -55,7 +58,7 @@ for n in INFILE:
  
     TEST_ARGS = INPUT_DIR + n + " " + str(thread)
     
-    for i in range(1, EVENT_NUM):
+    for i in range(EVENT_NUM):
       os.environ["PERFPOINT_EVENT_INDEX"] = str(i)
       start_time = os.times()[4]
       p = subprocess.Popen(['make', 'eval-perfpoint', 'TEST_ARGS='+TEST_ARGS]) #stdout=subprocess.PIPE, stderr=subprocess.PIPE)

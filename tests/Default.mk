@@ -1,5 +1,7 @@
 #MYLIB_DIR = /home/mejbah/WorkInProgress/perfpoint/source
-MYLIB_DIR = /home/mejbah/git_repos/Perf-Anomaly/profiler
+#MYLIB_DIR = /home/mejbah/git_repos/Perf-Anomaly/profiler
+MYLIB_DIR = /home/mejbah/projects/AutoPerf/profiler
+PAPI_PATH = /home/mejbah/projects/AutoPerf/papi
 MYLIB = perfpoint
 CC = gcc 
 CXX = g++ 
@@ -56,10 +58,10 @@ eval-pthread: $(TEST_NAME)-pthread
 #MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I /home/mejbah/WorkInProgress/perfpoint/source  -DPERFPOINT
 MYLIB_CFLAGS = $(CFLAGS) -DNDEBUG -I$(MYLIB_DIR)  -DPERFPOINT
 
-RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath /home/mejbah/WorkInProgress/perfpoint/papi/lib
+RPATH = -Wl,-rpath $(MYLIB_DIR) -Wl,-rpath $(PAPI_PATH)/lib
 
 #PAPI_LIB = /home/mejbah/WorkInProgress/perfpoint/papi/lib
-LD_FLAGS = -L$(MYLIB_DIR) -L/home/mejbah/WorkInProgress/perfpoint/papi/lib $(APP_LIB_DIR)
+LD_FLAGS = -L$(MYLIB_DIR) -L$(PAPI_PATH)/lib $(APP_LIB_DIR)
 MYLIB_LIBS += -rdynamic -lperfpoint -lpapi -lpthread -ldl $(PAPI_LIB) $(APP_LIBS) $(LIBS) 
 
 MYLIB_OBJS = $(addprefix obj/, $(addsuffix -$(MYLIB).o, $(TEST_FILES)))

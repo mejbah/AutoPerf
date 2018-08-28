@@ -49,14 +49,14 @@ int swap;      // to indicate if we need to swap byte order of header informatio
 
 typedef struct {
    unsigned char *data;
+#ifdef NO_FALSE_SHARING
+   unsigned char dummy[64];
+#endif
    long data_pos;
    long data_len;
    int red[256];
    int green[256];
    int blue[256];
-#ifdef NO_FALSE_SHARING
-   char dummy[40];
-#endif
 } thread_arg_t;
 
 /* test_endianess

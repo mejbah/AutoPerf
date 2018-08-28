@@ -19,37 +19,33 @@ TYPE_FLAG ='-D'+TYPE_FLAG
 OUTPUT_DIR=sys.argv[3] 
 
 DEFAULT_OUTFILE_NAME = "perf_data.csv"
-EVENT_NUM = 38
-NThread = [2,3, 4,5,6,7,8,9,10,11,12]
-NlistMatrix=[300, 600, 900, 1200, 1500, 1800]
-#EVENT_NUM = 2
-#NThread = [2] #3,4,5,6,7,8,9,10,11,12]
-#NArray = [50000000] # 2000000, 5000000, 10000000, 20000000, 50000000, 100000000]
+EVENT_NUM = 37
+#NThread = [2,3, 4,5,6,7,8,9,10,11,12]
+NThread = [16]
+NlistMatrix=[500]
 
 
-
-#mkdir for output files
-#p = subprocess.Popen(['mkdir', '-p', OUTPUT_DIR]) 
-#p.wait()
-
-runCount = 0;
 
 for n in NlistMatrix:
   ##make CFLAGS="-DGOOD -DN=100000000"
-  MAKE_FLAGS = 'CFLAGS=' + TYPE_FLAG + ' -DN=' + str(n)
+  REPEAT=50 #REPEAT FACTOR
+  MAKE_FLAGS = 'CFLAGS=' + TYPE_FLAG + ' -DN=' + str(n) + ' -DREPEAT=' + str(REPEAT)   
+
   p = subprocess.Popen(['make', 'clean'])
   p.wait()
   p = subprocess.Popen(['make', MAKE_FLAGS])
   p.wait()
   for thread in NThread:
-    currOutputDirName = OUTPUT_DIR + '/run_' + str(runCount)
-    runCount += 1
+    currOutputDirName = OUTPUT_DIR + '/run_' + str(n) + '_' + str(thread)
+    if os.path.isdir(currOutputDirName):
+      continue
+
     p = subprocess.Popen(['mkdir', '-p', currOutputDirName]) #stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p.wait()
  
     TEST_ARGS = str(thread)
     
-    for i in range(1, EVENT_NUM):
+    for i in range(EVENT_NUM):
       os.environ["PERFPOINT_EVENT_INDEX"] = str(i)
       start_time = os.times()[4]
       p = subprocess.Popen(['make', 'eval-perfpoint', 'TEST_ARGS='+TEST_ARGS]) #stdout=subprocess.PIPE, stderr=subprocess.PIPE)
