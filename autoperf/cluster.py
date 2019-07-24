@@ -9,6 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 """
 
+"""
+File name: cluster.py
+File description: Script of determining function clusters
+"""
+
 from __future__ import division
 import sys
 import climate

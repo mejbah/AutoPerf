@@ -9,6 +9,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 """
 
+"""
+File name: autoperf.py
+File description: Main script for training models and test AutoPerf
+"""
 
 import sys
 import numpy as np
@@ -28,22 +32,11 @@ import copy
 from collections import namedtuple
 
 
-
+"""
+Defintions of tuples used by this script
+"""
 AnomalyTuple = namedtuple('AnomalyTuple', 'run, sample_count, anomalous_sample_count, ranking')
 AccuracyTuple = namedtuple('AccuracyTuple', 'true_positive, false_negative, false_positive, true_negative')
-
-
-
-"""
-Returns number of executions profile csv file present in the directory
-"""
-def getNumberOfExecProfile( dirName ):
-  profiles = [ file.endswith(".csv") for file in dirName]
-  return len(profiles)
-
-def getExecProfileFileNames( dirName ):
-  profiles = [ file.endswith(".csv") for file in dirName]
-  return len(profiles)
 
 
 """
@@ -82,7 +75,7 @@ def getPerfDataset( dirName , numberOfCounters ):
 
 
 """
-Convert list to numpy arra
+Convert list to numpy array
 """
 def getDatasetArray( dataset ):
 
@@ -90,11 +83,18 @@ def getDatasetArray( dataset ):
   return dataArray
 
 
+"""
+Error function definition
+"""
 def getMSE(old, new):
   squaredError = ((old - new) ** 2)
   return np.mean(squaredError)
   #return mean_squared_error(old,new)
 
+
+"""
+Distance calculation between reconstructed and original inputs
+"""
 def getNormalizedDistance( old, new ):
   dist = np.linalg.norm(old-new)
   origin = np.linalg.norm(old)
@@ -102,6 +102,7 @@ def getNormalizedDistance( old, new ):
 
 
 """
+Function for ranking of anomalies
 in : list of tuple of (event,error)
 out : ranking and majority voting update
 """
@@ -114,8 +115,8 @@ def rankAnomalousPoint( sampleErrorsTuple, rankingMap ):
   return rankingMap
 
 
-
-"""report majority voting result
+"""
+Report ranking based on majority voting result
 in : rankingMap -- key: counter_name, val: vote count for each pos/rank
 out: list of rank for the entire execution anomaly root cause
 """
@@ -136,18 +137,18 @@ def reportRanks( rankingMap ) :
 
 
 """
-calculate reconstruction error : normalized distance
+Calculate reconstruction error : normalized distance
 """
 def detectAnomalyPoints( realData, predictedData, datasetHeader, thresholdLoss, outFile=None ):
   datasetLen = realData.shape[0]
   dataLen = realData.shape[1]
   anomalyCount = 0
 
-
-  ############################################################################################
-  #map for ranking :
-  #key = counter name, val = list of len(NUMBER_OF_COUNTERS) 				     #each pos corresponds to rank, smaller is better
-  #############################################################################################
+  """
+  map for ranking :
+  key = counter name, val = list of len(NUMBER_OF_COUNTERS)
+  each pos corresponds to rank, smaller is better
+  """
   rankingMap = {}
   for counterName in datasetHeader:
     rankingMap[counterName] = [0] * configs.NUMBER_OF_COUNTERS
@@ -176,7 +177,9 @@ def detectAnomalyPoints( realData, predictedData, datasetHeader, thresholdLoss, 
 
 
 
-
+"""
+Calculate a threshold based on distribution of reconstrucion errors
+"""
 def getReconstructionErrorThreshold( model, perfTestDataDir, runs ):
 
   errors = []
@@ -201,9 +204,8 @@ def getReconstructionErrorThreshold( model, perfTestDataDir, runs ):
 
 
 """
-test runs(executions) in the Datadir
-write outFile
-return number of run found as anomalous
+Run inference with dataset for test runs(executions) in the Datadir, write results in outFile
+and return number of runs found as anomalous
 """
 def testAutoencoder( model, perfTestDataDir, runs, outFile, threshold_error ):
   anomalousRunCount = 0
@@ -223,7 +225,7 @@ def testAutoencoder( model, perfTestDataDir, runs, outFile, threshold_error ):
 
 
 """
-return list of tuple(run,total_sample, anomalous_sample, ranking)
+Return list of tuple(run,total_sample, anomalous_sample, ranking)
 """
 def testAnomaly( model, testDataDir, runs, threshold_error ):
   test_summary = []
@@ -251,21 +253,9 @@ def runTrainedAutoencoder( model, testDataArray, datasetHeader, thresholdLoss, o
   return decoded_data, anomalyCount
 
 
-def createDataArray( datapath, numberofexec ):
-
-  topLevelDirName = datapath + "/outputs"
-
-  print ("reading dataset\n")
-  dataset, datasetHeader = createDataset(numberofexec, topLevelDirName)
-
-  print ("dataset created\n" )
-  #make np array
-  dataArray = np.array(dataset, dtype='float32')
-
-  return dataArray , datasetHeader
-
-
-
+"""
+Preprocessing of data
+"""
 def preprocessDataArray( dataset ):
   #zero centering
   #mean_vector = np.mean(dataset, axis=0)
@@ -281,6 +271,9 @@ def preprocessDataArray( dataset ):
   return processed_dataset
 
 
+"""
+Util function for aggregating data files from all profile runs
+"""
 def getTrainDataSequence(dataDir, testDir=None, validationDir=None ):
   runs = os.listdir(dataDir) ##no sequence of directory assigned, it should not matter
 
@@ -288,6 +281,9 @@ def getTrainDataSequence(dataDir, testDir=None, validationDir=None ):
   return runs
 
 
+"""
+Util function for analyzing dataset
+"""
 def analyzeVariationInData( dataDir, testDir=None, validationDir=None ):
 
   runs = os.listdir(dataDir)
@@ -324,12 +320,18 @@ def analyzeVariationInData( dataDir, testDir=None, validationDir=None ):
   return sorted_results, testResults, validationResults
 
 
-
+"""
+I/O util for writing log of results
+"""
 def writeTestLog(logFile, anomalySummary):
   for tuple in anomalySummary:
     print(tuple.run, tuple.sample_count, tuple.anomalous_sample_count, file=logFile)
     ## AnomalyTuple(run = run, sample_count=dataLen, anomalous_sample_count=anomalyCount, ranking = ranking)
 
+
+"""
+Inferencing of model and determination of anomalies
+"""
 def testModel( model, threshold_error, nonAnomalousDataDir, anomalousDataDir, logFile=None ):
   print("..Testing Non-anomalous")
   negative_runs = os.listdir(nonAnomalousDataDir)
@@ -349,6 +351,10 @@ def testModel( model, threshold_error, nonAnomalousDataDir, anomalousDataDir, lo
   false_negative = len(positive_runs) - true_positive
   return AccuracyTuple(true_positive=true_positive, false_negative = false_negative, false_positive=false_positive, true_negative=true_negative)
 
+
+"""
+Function for gathering statistics on accuracy of a model for a specific test dataset and validation dataset
+"""
 def testModelAccuracy( model, outFilename, threshold_error, perfTestDataDir, perfValidDataDir ):
 
   outFile = open(outFilename, 'w')
@@ -408,10 +414,7 @@ Aggregate all data and train with all data at once
 
 def perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder, threshold_final=None , saveTrainedNetwork=False):
 
-  #outputFilePrefix = outputDir + "/" + "report."
   model = None
-  #logFileName = outputFilePrefix + "log"
-  #log_file = open(logFileName, 'w')
 
   training_sequence = getTrainDataSequence(perfTrainDataDir)
   train_loss_list = []
@@ -443,15 +446,14 @@ def perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder, threshold_f
 
   return train_loss_list, validation_loss_list
 
+
+
 """
-train data with one or more exeuction data in one batch
+Train data with one or more exeuction data in one batch
 """
 def perfAnalyzerMainTrainSequence( perfTrainDataDir, outputDir, autoencoder, threshold_final=None , saveTrainedNetwork=False):
 
-  #outputFilePrefix = outputDir + "/" + "report."
   model = None
-  #logFileName = outputFilePrefix + "log"
-  #log_file = open(logFileName, 'w')
 
   training_sequence = getTrainDataSequence(perfTrainDataDir)
   #for epoch in configs.EXPERIMENT_EPOCHS:
@@ -498,8 +500,11 @@ def perfAnalyzerMainTrainSequence( perfTrainDataDir, outputDir, autoencoder, thr
   return train_loss_list, validation_loss_list
 
 
-
+"""
+Util function for determining different topologies
+"""
 def getRangeOfNode( n ):
+
   list_of_numbers = []
   for i in range( int(n/4), int(3*n/4) ):
     if i> 5: #TODO: limit ???
@@ -507,6 +512,10 @@ def getRangeOfNode( n ):
   return list_of_numbers
 
 
+"""
+Run inference on input data and calculate reconstrution error
+@return : list of reconstrution errors
+"""
 def getReconstructionErrors( perfTestDataDir, model ):
 
   runs = os.listdir(perfTestDataDir)
@@ -563,8 +572,9 @@ def aggregateAndTrain( perfTrainDataDir, autoencoder, saveTrainedNetwork=False,o
 
   return model
 
+
 """
-threshold = mean + 3 * std of reconstruction errors
+Calculates threshold of reconstruction errors = mean + 3 * std of reconstruction errors
 """
 def calcThresoldError(reconstructionErrors):
   meanVal = np.mean(reconstructionErrors)
@@ -572,6 +582,9 @@ def calcThresoldError(reconstructionErrors):
   return meanVal
 
 
+"""
+Train and test one autoencoder model with the datasets stored in the given directories
+"""
 def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestDataDir, logFile=None ):
   model = aggregateAndTrain( trainDataDir, autoencoder )
 
@@ -588,41 +601,11 @@ def trainAndTest( autoencoder, trainDataDir, nonAnomalousTestDir, anomalousTestD
 
   return (model_string, threshold_error, test_result)
 
+
+
 """
-Train and test with given autoencoder network
-Outputs reconstruction errors for train and test dataset """
-def runAutoencoder( inputDim, encodeDim, middleLayers, perfTrainDataDir, perfTestDataDir, outputDir ):
-  mkdir_p(outputDir)
-  autoencoder = keras_autoencoder.getAutoencoder(inputDim, encodeDim, middleLayers)
-  training_losses, validation_losses = perfAnalyzerMainTrain( perfTrainDataDir, outputDir, autoencoder )
-
-  datasetTrainErrors = getReconstructionErrors(perfTrainDataDir,autoencoder)
-  datasetTestErrors = getReconstructionErrors(perfTestDataDir, autoencoder)
-
-
-  outFilename = outputDir + "/reconstruction_errors_train.pdf"
-  plotDataList( datasetTrainErrors, outFilename)
-
-  outFilename = outputDir + "/reconstruction_errors_train.out"
-  outFile = open(outFilename, 'w')
-  for val in datasetTrainErrors:
-    print(val, file=outFile)
-
-  outFile.close()
-
-  outFilename = outputDir + "/reconstruction_errors_test.pdf"
-  plotDataList( datasetTestErrors, outFilename)
-  outFilename = outputDir + "/reconstruction_errors_test.out"
-  outFile = open(outFilename, 'w')
-  for val in datasetTestErrors:
-    print(val, file=outFile)
-
-  outFile.close()
-
-
-
-
-
+Create autoencoders from lists of input length and array of layers
+"""
 def getTopologies( inputLen, numberOfLayers ):
 
   candidate_autoencoders = []
@@ -658,7 +641,7 @@ def getTopologies( inputLen, numberOfLayers ):
 
 
 """
-train and test provided list of candidate_autoencoders
+Train and test provided list of candidate_autoencoders
 or serach all possible networks in range of NUMBER_OF_HIDDEN_LAYER_TO_SEARCH
 """
 def AutoPerfMain(candidate_autoencoders=None):

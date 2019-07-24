@@ -9,6 +9,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 """
 
+"""
+File name: utils.py
+File description: This file contains some utility function for data access, analyze, and visualization
+"""
+
 
 from __future__ import division
 import matplotlib as mpl

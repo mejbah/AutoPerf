@@ -9,6 +9,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 """
 
+"""
+File name: autoperf.py
+File description: A keras implemation of Autoencoder for AutoPerf accompanied with classes required callback functions
+"""
+
+
+
 from keras.layers import Input, Dense
 from keras.models import Model
 from keras.datasets import mnist
@@ -19,13 +26,10 @@ import configs
 import math
 
 """
-help : 
-https://keras.io/callbacks/
-https://keunwoochoi.wordpress.com/2016/07/16/keras-callbacks/
-
+A callback class for logging training and validation losses in keras model
 """
-
 class LossHistory(keras.callbacks.Callback):
+
   def on_train_begin(self, logs={}):
     self.losses = []
     self.val_losses = []
@@ -35,13 +39,17 @@ class LossHistory(keras.callbacks.Callback):
     self.val_losses.append(logs.get('val_loss'))
 
 
+"""
+A callback for early stopping during model training
+"""
 class EarlyStoppingByLossVal(keras.callbacks.Callback):
+
   def __init__(self, monitor='val_loss', value=0.00001, verbose=0):
     super(Callback, self).__init__()
     self.monitor = monitor
     self.value = value
     self.verbose = verbose
-  
+
   def on_epoch_end(self, epoch, logs={}):
     current = logs.get(self.monitor)
     if current is None:
@@ -51,8 +59,11 @@ class EarlyStoppingByLossVal(keras.callbacks.Callback):
         print("Epoch %05d: early stopping THR" % epoch)
       self.model.stop_training = True
 
-
+"""
+Alternative to early stopping : a new variaance termination algorithm
+"""
 class VarianceTermination(keras.callbacks.Callback):
+
   def __init_(self, monitor='val_loss', verbose=0, epsilon=0.05, repeatedSuccess=0):
     self.losses = []
     self.monitor = monitor
@@ -71,13 +82,16 @@ class VarianceTermination(keras.callbacks.Callback):
         self.lastStop += 1
       else:
         self.lastStop = 0
-    
 
+
+"""
+Training an autoendoer with training_data
+"""
 def trainAutoencoder( autoencoder, training_data ):
+
   history = LossHistory()
 
-  #TODO: add noise??
-  noise_factor = 1#0.1 #0.2
+  noise_factor = 1 #0.1 #0.2
   noisy_training_data = noise_factor * np.random.normal(loc=0.0, scale=1.0, size=training_data.shape)
   autoencoder.fit(noisy_training_data, training_data,
                   epochs=configs.TRAINING_EPOCHS,  #20, #50,
@@ -87,24 +101,34 @@ def trainAutoencoder( autoencoder, training_data ):
                   #validation_data=(validation_data, validation_data), 
                   verbose=1,
                   callbacks=[history])
-    
-  
+
   return autoencoder, history.losses, history.val_losses
 
 
+"""
+Inferencing of autoencoder with test_data
+"""
 def predict( autoencoder, test_data ):
+
   decoded_data = autoencoder.predict(test_data)
   return decoded_data
 
 
+"""
+Get the topology of an autoencoder network
+"""
 def getAutoendoerShape( model ):
+
   topology = [ x.output_shape[1] for x in model.layers]
   return topology
 
+
 """
-tied weights (palindromic) autencoder : input_dim -> layers_dims -> encoder_dim -> reverse(layers_dims) -> input_dim
+Construct an autoencoder model based on configurations provided
+This fucntion creates tied weights (palindromic) autencoder : input_dim -> layers_dims -> encoder_dim -> reverse(layers_dims) -> input_dim
 """
 def getAutoencoder( input_dim, encoder_dim, layer_dims=None ):
+
   input_layer = Input(shape=(input_dim,))
   prev = input_layer
   encoded = None
@@ -112,7 +136,7 @@ def getAutoencoder( input_dim, encoder_dim, layer_dims=None ):
     for curr_dim in layer_dims:
       encoded = Dense( curr_dim, activation = 'sigmoid' )(prev)
       prev = encoded
-    
+
   encoded = Dense( encoder_dim, activation = 'sigmoid' ) (prev)
   prev = encoded
   decoded = None
@@ -129,7 +153,3 @@ def getAutoencoder( input_dim, encoder_dim, layer_dims=None ):
   optimizer_var = optimizers.SGD(lr=0.01)
   autoencoder.compile(optimizer=optimizer_var, loss='mean_squared_error')
   return autoencoder
-
-  
-#if __name__ == "__main__":
-#  autencoderMain()
