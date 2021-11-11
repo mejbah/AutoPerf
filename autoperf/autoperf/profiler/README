@@ -1,6 +1,0 @@
-#1. set environment variable before using the library:
-export PERFPOINT_EVENT_INDEX=#num
-
-void setMonitoringEventName(){ //from  env variable
-     char* env_p = std::getenv("PERFPOINT_EVENT_INDEX");
-
