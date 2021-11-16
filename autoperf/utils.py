@@ -1,193 +1,120 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ******************************************************************************
+# Copyright (c) 2018 Mejbah ul Alam, Justin Gottschlich, Abdullah Muzahid
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ******************************************************************************
+"""utils.py
+
+This file contains some utility function for data access, analyze, and
+visualization.
 """
-Copyright (c) 2018 Mejbah ul Alam, Justin Gottschlich, Abdullah Muzahid
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-"""
-
-"""
-File name: utils.py
-File description: This file contains some utility function for data access, analyze, and visualization
-"""
-
 
 from __future__ import division
-import matplotlib as mpl
-mpl.use('Agg') #instead of Xserver for png
-import matplotlib.pyplot as plt
-import numpy as np
+
 import os
-import errno
-import configs
-import sys
+from typing import Tuple
+import contextlib
 
-def mkdir_p(path):
-  try:
-	os.makedirs(path)
-  except OSError as exc:  # Python >2.5
-	if exc.errno == errno.EEXIST and os.path.isdir(path):
-	  pass
-	else:
-	  raise
+import numpy as np
+from git import Repo
 
 
-def plotDataArray( datasetArray, filename ):
-  
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
+def compareDataset(datasetArrayBase: np.ndarray, datasetArray: np.ndarray) -> int:
+  """Compares the mean values between two datasets.
 
-  x_values = np.arange(datasetArray.shape[0])
-  y_values = datasetArray[:,1] #first column
+  Args:
+      datasetArrayBase: Original data.
+      datasetArray: New data.
 
-  
-  ax.plot(x_values,y_values)
-  fig.savefig(filename)
+  Returns:
+      L2 norm of the differences between the input array means.
 
-
-def plotHistogram( datasetList, filename, label="default", secondDatasetList=None, thirdDatasetList=None  ):
-
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
-  
-  #bins = np.linspace(-10, 10, 100)
-  bins = 100
-  ax.hist(datasetList, bins, alpha=0.5, label='not anomalous')
-  if secondDatasetList != None:
-    ax.hist(secondDatasetList, bins, alpha=0.5, label='anomalous')
-  ax.legend(loc='upper right')
-  ax.set_ylabel("sample count")
-  ax.set_xlabel("counter value in sample")
-  fig.suptitle(label)
-  fig.savefig(filename)
-
-def plotDataList( datasetList, filename, label="default", secondDatasetList=None, thirdDatasetList=None  ):
-  
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
-
-  x_values = [x for x in range(len(datasetList))]
-  y_values = datasetList 
-
-  
-  ax.plot(x_values,y_values, 'bo', label = 'first')
-  
-  if secondDatasetList != None:
-
-	  x_values = [x for x in range(len(secondDatasetList))]
-	  y_values = secondDatasetList
-
-  
-	  ax.plot(x_values, y_values, 'ro', label = 'second')
-
-  if thirdDatasetList != None:
-
-	  x_values = [x for x in range(len(thirdDatasetList))]
-	  y_values = thirdDatasetList
-
-  
-	  ax.plot(x_values, y_values, 'g^', label = 'third')
-
- 
-  ax.legend(loc='upper left') 
-  ax.set_ylabel(label)
-  ax.set_xlabel("executions")
-
-  fig.savefig(filename)
-
-
-
-def plotPerfCounters( datasetArray1, datasetArray2, column, columnName, outputDir ):
-  
-  fig = plt.figure()
-  ax = fig.add_subplot(111)
-
-  x_values = np.arange(datasetArray1.shape[0])
-  y_values = datasetArray1[:,column] 
-  
-  ax.plot(x_values, y_values, 'bo')
-
-  x_values = np.arange(datasetArray2.shape[0])
-  y_values = datasetArray2[:,column] 
-  
-  ax.plot(x_values, y_values, 'ro')
-  ax.set_ylabel(columnName)
-
-  fig.savefig( outputDir + '/counter_'+ columnName + '.png')
-  plt.close(fig)
-
-
-"""
-returns mean difference between two dataset
-assumes size of two datasets are equal
-"""
-"""
-def compareDataset( datasetArrayBase, datasetArray ):
-  #diff = (datasetArray1Base - datasetArray) ** 2
-  #meanDiff = np.mean(diff, axis=0)
-  
-  diff = (datasetArrayBase - datasetArray)
-  # matrix norm
-  diffVal = np.linalg.norm(diff)
-  return diffVal
-"""
-"""
-take mean of each columns and compare
-"""
-def compareDataset( datasetArrayBase, datasetArray ):
+  """
   meanBase = np.mean(datasetArrayBase, axis=0)
   meanComp = np.mean(datasetArray, axis=0)
 
   diffVal = np.linalg.norm(meanBase - meanComp)
   return diffVal
 
-"""
-get perf counter in 3rd column from the data csv file, 
-"""
-def getPerfCounterData( counterId, dataDir ):
+
+def getPerfCounterData(counterId: str, dataDir: str, scale: float) -> Tuple[list, str]:
+  """Get the performance counter from the 3rd column of the CSV data file.
+
+  Args:
+      counterId: The performance counter name / ID.
+      dataDir: The parent folder of the performance counter data.
+      scale: Scale factor post-normalization. Accessed via `cfg.training.scale_factor`.
+
+  Returns:
+      A list of normalized performance counter results.
+      The counter's header.
+  """
   filename = dataDir + "/event_" + counterId + "_perf_data.csv"
   perfCounter = []
   with open(filename, 'r') as fp:
-    for linenumber,line in enumerate(fp):
-	  if linenumber == 2:
-		headers = line.strip().split(",")   #last one is the counter, 1 and 2  is thd id and instcouunt , 0 is mark id
-		datasetHeader = headers[-1]
-	  if linenumber > 2:
-		perfCounters = line.strip().split(",")
-		mark = int(perfCounters[0])
-		threadCount = int(perfCounters[1])
-		instructionCount = int(perfCounters[2])
-		currCounter = int(perfCounters[3]) 
-		#normalizedCounter = ( currCounter / ( instructionCount * threadCount ) )* configs.SCALE_UP_FACTOR
-		normalizedCounter = ( currCounter / ( instructionCount ) )* configs.SCALE_UP_FACTOR
-		perfCounter.append(normalizedCounter)
+    for linenumber, line in enumerate(fp):
+      if linenumber == 2:
+        headers = line.strip().split(",")  # last one is the counter, 1 and 2  is thd id and instcouunt , 0 is mark id
+        datasetHeader = headers[-1]
+      if linenumber > 2:
+        perfCounters = line.strip().split(",")
+        # mark = int(perfCounters[0])  # unused
+        # threadCount = int(perfCounters[1])  # unused
+        instructionCount = int(perfCounters[2])
+        currCounter = int(perfCounters[3])
+        normalizedCounter = (currCounter / instructionCount) * scale
+        perfCounter.append(normalizedCounter)
 
   return perfCounter, datasetHeader
-	   
-def compareCounters( dataDir1, dataDir2, counterId, outputDir=None ): 
-
-  datasetList, datasetHeader1 = getPerfCounterData(counterId, dataDir1)
-  secondDatasetList, datasetHeader2 = getPerfCounterData(counterId, dataDir2)
-  
-  assert datasetHeader1 == datasetHeader2
-  plotFile = dataDir1.split('/')[-1] + "_" + datasetHeader1.lstrip()
-  if outputDir != None:
-    plotFile = outputDir + '/' + plotFile
-  print plotFile
-  #plotDataList( datasetList, plotFile, datasetHeader1, secondDatasetList )
-  plotHistogram( datasetList, plotFile, datasetHeader1, secondDatasetList )
-  
-  return datasetHeader1
 
 
-if __name__ == "__main__":
+def getAutoperfDir(directory: str = None) -> str:
+  """Retrieves the full path to the repository's .autoperf directory.
 
-  #plot to compare counters
-  first = sys.argv[1]
-  second = sys.argv[2]
-  counter_id = sys.argv[3]
-  output_dir = sys.argv[4] 
-  compareCounters(first, second, counter_id, output_dir)
+  Args:
+      directory: Path within the .autoperf dir.
+
+  Returns:
+      str: Path to .autoperf
+  """
+  repo = Repo(os.getcwd(), search_parent_directories=True)
+  if directory:
+    return os.path.join(repo.working_tree_dir, '.autoperf', directory)
+  return os.path.join(repo.working_tree_dir, '.autoperf')
+
+
+@contextlib.contextmanager
+def set_working_directory(directory: str) -> str:
+  """Temporarily cd into the working directory. After context is closed (e.g. the
+  function is exited), returns to the previous working directory.
+
+  Args:
+      directory: Path to change to.
+
+  Yields:
+      New working directory.
+  """
+  owd = os.getcwd()
+  try:
+    os.chdir(directory)
+    yield directory
+  finally:
+    os.chdir(owd)

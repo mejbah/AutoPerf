@@ -1,0 +1,29 @@
+name: ap
+channels:
+  - defaults
+  - anaconda
+  - conda-forge
+dependencies:
+  - python=3.8.2
+  - conda-forge::rich=10.1.0
+  - conda-forge::python-clang=11.1.0
+  - conda-forge::libclang=11.1.0
+  - numpy=1.20.1
+  - conda-forge::tensorflow=2.4.0
+  - pydot=1.4.1
+  - pandas=1.2.4
+  - matplotlib=3.3.4
+  - seaborn=0.11.1
+  - gitpython=3.1.14
+  - scikit-learn=0.24.1
+  - psutil=5.8.0
+  - transitions=0.8.8
+  - graphviz
+  - python-graphviz=0.16
+  - dill=0.3.3
+  - tqdm=4.59.0
+  - sphinx 
+  - sphinx-autodoc-typehints
+  - sphinx_rtd_theme
+
+
